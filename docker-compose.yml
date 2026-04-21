@@ -1,0 +1,18 @@
+services:
+  assistant:
+    build: .
+    container_name: fiuba-local-assistant
+    ports:
+      - "8787:8787"
+    environment:
+      FIUBA_ROOT: /data/Facultad
+      FIUBA_STATE_DIR: /data/state
+      FIUBA_DB_PATH: /data/state/index.db
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      OLLAMA_HOST: ${OLLAMA_HOST:-http://host.docker.internal:11434}
+    volumes:
+      - ${FIUBA_MATERIAS_DIR:-./Facultad}:/data/Facultad:ro
+      - ${FIUBA_DATA_DIR:-./.fiuba_local}:/data/state
+    command: ["fiuba-local", "serve", "--host", "0.0.0.0", "--port", "8787", "--ollama-host", "${OLLAMA_HOST:-http://host.docker.internal:11434}"]

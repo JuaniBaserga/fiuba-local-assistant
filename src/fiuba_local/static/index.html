@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FIUBA Study Localhost</title>
+    <link rel="stylesheet" href="/assets/style.css" />
+  </head>
+  <body>
+    <div class="bg-mesh" aria-hidden="true"></div>
+    <main class="app-shell">
+      <aside class="control-panel">
+        <h1>FIUBA Study</h1>
+        <p class="subtitle">Chat-first local assistant on your notes.</p>
+
+        <label for="materia">Materia</label>
+        <select id="materia">
+          <option value="">Todas</option>
+        </select>
+        <div class="materia-meta">
+          <span id="materia-count">Detectadas: 0</span>
+          <button id="refresh-materias-btn" type="button" class="secondary small">Actualizar</button>
+        </div>
+        <ul id="materia-list" class="materia-list"></ul>
+        <div class="actions control-actions">
+          <button id="index-btn" type="button" class="secondary">Indexar</button>
+        </div>
+        <pre id="index-result" class="index-result hidden"></pre>
+
+        <label for="model">Modelo</label>
+        <input id="model" value="qwen2.5:3b-instruct" />
+
+        <label for="engine">Motor</label>
+        <select id="engine">
+          <option value="codex">Codex Chat (recomendado)</option>
+          <option value="openai">OpenAI API</option>
+          <option value="gemini">Gemini API</option>
+          <option value="ollama">Ollama local</option>
+        </select>
+
+        <div class="inline-grid">
+          <div>
+            <label for="topk">Top-k</label>
+            <input id="topk" type="number" min="1" max="15" value="6" />
+          </div>
+          <div>
+            <label for="timeout">Timeout (s)</label>
+            <input id="timeout" type="number" min="10" max="1200" value="300" />
+          </div>
+        </div>
+      </aside>
+
+      <section class="chat-panel">
+        <header class="panel-head">
+          <h2>Workspace</h2>
+          <span id="status-pill" class="status-pill">Ready</span>
+        </header>
+        <div class="tabs">
+          <button id="tab-ask-btn" type="button" class="tab-btn active">Preguntar</button>
+          <button id="tab-ocr-btn" type="button" class="tab-btn">OCR Check</button>
+        </div>
+
+        <section id="tab-ask" class="tab-content">
+          <label for="question">Pregunta</label>
+          <textarea
+            id="question"
+            rows="6"
+            placeholder="Ejemplo: Resumen de molienda y guia de pasos para resolver ejercicios."
+          ></textarea>
+
+          <div class="actions">
+            <button id="ask-btn" type="button">Consultar</button>
+            <button id="copy-btn" type="button" class="secondary hidden">Copiar para Codex</button>
+          </div>
+
+          <article id="answer-card" class="answer-card hidden">
+            <div class="answer-head">
+              <h3>Respuesta</h3>
+              <span id="model-badge" class="model-badge"></span>
+            </div>
+            <pre id="answer-text"></pre>
+            <details id="codex-prompt-wrap" class="hidden">
+              <summary>Ver bloque preparado para Codex</summary>
+              <pre id="codex-prompt"></pre>
+            </details>
+          </article>
+
+          <article id="sources-card" class="sources-card hidden">
+            <h3>Fuentes</h3>
+            <ul id="sources-list"></ul>
+          </article>
+        </section>
+
+        <section id="tab-ocr" class="tab-content hidden">
+          <p class="subtitle small">
+            Detecta PDFs con poco texto extraible y sugiere pasarlos por OCR para mejorar respuestas.
+          </p>
+          <div class="inline-grid">
+            <div>
+              <label for="ocr-min-total">Min chars total</label>
+              <input id="ocr-min-total" type="number" min="1" value="120" />
+            </div>
+            <div>
+              <label for="ocr-min-page">Min chars/pag</label>
+              <input id="ocr-min-page" type="number" min="1" value="60" />
+            </div>
+          </div>
+          <div class="inline-grid">
+            <div>
+              <label for="ocr-limit">Limit</label>
+              <input id="ocr-limit" type="number" min="1" max="500" value="100" />
+            </div>
+            <div>
+              <label for="ocr-only-needs">Solo candidatos OCR</label>
+              <select id="ocr-only-needs">
+                <option value="true">Si</option>
+                <option value="false">No</option>
+              </select>
+            </div>
+          </div>
+          <div class="actions">
+            <button id="ocr-btn" type="button">Escanear OCR</button>
+          </div>
+
+          <article id="ocr-card" class="answer-card hidden">
+            <div class="answer-head">
+              <h3>Resultado OCR</h3>
+              <span id="ocr-summary" class="model-badge"></span>
+            </div>
+            <ul id="ocr-list" class="ocr-list"></ul>
+          </article>
+        </section>
+      </section>
+    </main>
+    <script src="/assets/app.js"></script>
+  </body>
+</html>

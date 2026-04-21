@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fiuba-local-assistant"
+version = "0.1.0"
+description = "Asistente de estudio FIUBA 100% local (MVP fase 1)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+fiuba-local = "fiuba_local.cli:main"
+fiuba-local-web = "fiuba_local.webapp:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.package-data]
+"fiuba_local" = ["static/*.html", "static/*.css", "static/*.js"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
