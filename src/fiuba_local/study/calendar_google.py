@@ -104,6 +104,8 @@ def sync_sessions_to_google_calendar(
             "summary": f"Estudio - {session.materia}",
             "description": (
                 f"Objetivo: {session.target_event_type} ({session.target_title})\n"
+                f"Tema foco: {session.focus_topic}\n"
+                f"Razon: {session.focus_reason}\n"
                 f"Fecha objetivo: {session.target_date.isoformat()}\n"
                 f"Duracion: {session.duration_minutes} minutos\n"
                 f"Session ID: {session.id}"

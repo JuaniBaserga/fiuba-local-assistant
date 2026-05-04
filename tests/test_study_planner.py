@@ -83,6 +83,35 @@ def test_build_study_plan_respects_daily_limit_when_feasible():
     assert all(minutes <= 120 for minutes in by_day.values())
 
 
+def test_build_study_plan_assigns_focus_topic_and_reason():
+    start = date(2026, 4, 20)
+    events = [
+        StudyEvent(
+            materia="Mecanismos",
+            event_type="parcial",
+            title="Parcial Meca",
+            date=date(2026, 4, 28),
+            weight=1.0,
+            difficulty=4,
+            topics=("Cinematica", "Dinamica", "Rozamiento"),
+        )
+    ]
+    options = PlanOptions(
+        from_date=start,
+        weekly_hours=4.0,
+        weeks=1,
+        session_minutes=60,
+        max_daily_hours=3.0,
+        day_start_hour=18,
+    )
+
+    sessions = build_study_plan(events, options)
+    assert sessions
+    assert all(session.focus_topic.strip() for session in sessions)
+    assert all(session.focus_reason.strip() for session in sessions)
+    assert any("Cinematica" in session.focus_topic or "Dinamica" in session.focus_topic for session in sessions)
+
+
 def test_render_ics_contains_events():
     session = StudySession(
         id="2026-04-20-mecanismos-1",
@@ -94,9 +123,12 @@ def test_render_ics_contains_events():
         target_date=date(2026, 4, 24),
         target_event_type="parcial",
         target_title="Parcial Meca",
+        focus_topic="Repaso activo: Cinematica",
+        focus_reason="Faltan 4 dias para parcial 'Parcial Meca'; fase de cierre previa al objetivo.",
     )
     payload = render_ics([session], calendar_name="Plan FIUBA")
 
     assert "BEGIN:VCALENDAR" in payload
     assert "SUMMARY:Estudio - Mecanismos" in payload
+    assert "Tema foco: Repaso activo: Cinematica" in payload
     assert "X-WR-CALNAME:Plan FIUBA" in payload

@@ -12,6 +12,7 @@ class StudyEvent:
     date: date
     weight: float = 1.0
     difficulty: int = 3
+    topics: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -25,6 +26,8 @@ class StudySession:
     target_date: date
     target_event_type: str
     target_title: str
+    focus_topic: str = ""
+    focus_reason: str = ""
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -37,6 +40,8 @@ class StudySession:
             "target_date": self.target_date.isoformat(),
             "target_event_type": self.target_event_type,
             "target_title": self.target_title,
+            "focus_topic": self.focus_topic,
+            "focus_reason": self.focus_reason,
         }
 
     @staticmethod
@@ -51,4 +56,6 @@ class StudySession:
             target_date=date.fromisoformat(str(raw["target_date"])),
             target_event_type=str(raw["target_event_type"]),
             target_title=str(raw["target_title"]),
+            focus_topic=str(raw.get("focus_topic", "Repaso general")),
+            focus_reason=str(raw.get("focus_reason", "Sesion asignada por prioridad y cercania de fecha objetivo.")),
         )

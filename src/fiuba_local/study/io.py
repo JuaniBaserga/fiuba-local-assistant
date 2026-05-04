@@ -39,6 +39,11 @@ def build_default_dates_template(today: date) -> dict[str, Any]:
                 "date": sample_date.isoformat(),
                 "weight": 1.0,
                 "difficulty": 3,
+                "topics": [
+                    "Modelado del sistema",
+                    "Balance de energia",
+                    "Resolucion de ejercicios tipo parcial",
+                ],
             }
         ]
     }
@@ -112,6 +117,20 @@ def _parse_event(raw: dict[str, Any]) -> StudyEvent:
     if difficulty < 1 or difficulty > 5:
         raise ValueError(f"Evento de {materia}: `difficulty` debe estar entre 1 y 5.")
 
+    topics_raw = raw.get("topics", [])
+    topics: list[str] = []
+    if isinstance(topics_raw, str):
+        topics = [item.strip() for item in topics_raw.split(",") if item.strip()]
+    elif isinstance(topics_raw, list):
+        for idx, item in enumerate(topics_raw, start=1):
+            if not isinstance(item, str):
+                raise ValueError(f"Evento de {materia}: `topics[{idx}]` debe ser string.")
+            topic = item.strip()
+            if topic:
+                topics.append(topic)
+    else:
+        raise ValueError(f"Evento de {materia}: `topics` debe ser lista de strings o string CSV.")
+
     return StudyEvent(
         materia=materia,
         event_type=event_type,
@@ -119,6 +138,7 @@ def _parse_event(raw: dict[str, Any]) -> StudyEvent:
         date=event_date,
         weight=weight,
         difficulty=difficulty,
+        topics=tuple(topics),
     )
 
 

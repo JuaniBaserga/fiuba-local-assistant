@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import csv
 import os
+import sys
 from datetime import date, datetime
 from pathlib import Path
 
@@ -42,6 +43,13 @@ def _positive_float(value: str) -> float:
     if n <= 0:
         raise argparse.ArgumentTypeError("Debe ser un numero positivo.")
     return n
+
+
+def _confirm_with_user(prompt: str) -> bool:
+    if not sys.stdin.isatty():
+        raise RuntimeError("`--confirm-with-user` requiere una terminal interactiva (TTY).")
+    answer = input(prompt).strip().lower()
+    return answer in {"s", "si", "sí", "y", "yes"}
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -154,6 +162,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_study_plan.add_argument("--max-daily-hours", type=_positive_float, help="Maximo de horas por dia.")
     p_study_plan.add_argument("--day-start-hour", type=int, help="Hora de inicio sugerida (0-23).")
     p_study_plan.add_argument("--out-csv", type=Path, help="Exporta sesiones a CSV.")
+    p_study_plan.add_argument(
+        "--confirm-with-user",
+        action="store_true",
+        help="Pide confirmacion interactiva antes de guardar el plan.",
+    )
 
     p_study_ics = study_sub.add_parser("export-ics", help="Exporta sesiones a calendario ICS.")
     p_study_ics.add_argument(
@@ -221,6 +234,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_study_sync.add_argument("--max-events", type=_positive_int, help="Limite de eventos a sincronizar.")
     p_study_sync.add_argument("--dry-run", action="store_true", help="No crea eventos, solo simula.")
     p_study_sync.add_argument("--force-resync", action="store_true", help="Ignora cache local de sesiones sincronizadas.")
+    p_study_sync.add_argument(
+        "--confirm-with-user",
+        action="store_true",
+        help="Pide confirmacion interactiva antes de sincronizar (modo real).",
+    )
 
     p_ocr = sub.add_parser("ocr-check", help="Detecta PDFs candidatos a OCR.")
     p_ocr.add_argument("--materia", help="Materia a escanear. Si se omite, escanea toda la raiz.")
@@ -400,6 +418,8 @@ def _sessions_to_csv(path: Path, sessions: list[StudySession]) -> None:
                 "target_date",
                 "target_event_type",
                 "target_title",
+                "focus_topic",
+                "focus_reason",
             ],
         )
         writer.writeheader()
@@ -462,6 +482,27 @@ def run_study_plan(args: argparse.Namespace) -> int:
     for session in sessions:
         minutes_by_materia[session.materia] = minutes_by_materia.get(session.materia, 0) + session.duration_minutes
 
+    print(f"Plan generado: {len(sessions)} sesiones")
+    print(f"Desde: {sessions[0].start.date().isoformat()} hasta: {sessions[-1].end.date().isoformat()}")
+    print("Horas por materia:")
+    for materia, minutes in sorted(minutes_by_materia.items(), key=lambda kv: kv[1], reverse=True):
+        print(f"- {materia}: {minutes / 60:.2f} h")
+    print("Primeras sesiones (tema foco y razon):")
+    for session in sessions[:10]:
+        start_label = session.start.strftime("%Y-%m-%d %H:%M")
+        print(f"- {start_label} | {session.materia} | {session.focus_topic}")
+        print(f"  {session.focus_reason}")
+
+    if args.confirm_with_user:
+        try:
+            confirmed = _confirm_with_user("Guardar este plan en study_state.json? [s/N]: ")
+        except RuntimeError as exc:
+            print(str(exc))
+            return 1
+        if not confirmed:
+            print("Plan cancelado por el usuario. No se guardaron cambios.")
+            return 0
+
     state["config"] = {
         "weekly_hours": weekly_hours,
         "weeks": weeks,
@@ -471,12 +512,6 @@ def run_study_plan(args: argparse.Namespace) -> int:
     }
     state["planned_sessions"] = [session.to_dict() for session in sessions]
     save_state(state_path, state)
-
-    print(f"Plan generado: {len(sessions)} sesiones")
-    print(f"Desde: {sessions[0].start.date().isoformat()} hasta: {sessions[-1].end.date().isoformat()}")
-    print("Horas por materia:")
-    for materia, minutes in sorted(minutes_by_materia.items(), key=lambda kv: kv[1], reverse=True):
-        print(f"- {materia}: {minutes / 60:.2f} h")
     print(f"Estado actualizado: {state_path}")
 
     if args.out_csv:
@@ -641,6 +676,18 @@ def run_study_sync_gcal(args: argparse.Namespace) -> int:
         gcal_block = {}
     raw_synced = gcal_block.get("synced_session_ids", [])
     synced_ids = {sid for sid in raw_synced if isinstance(sid, str)}
+
+    if args.confirm_with_user and not args.dry_run:
+        selected = len(sessions) if args.max_events is None else min(len(sessions), args.max_events)
+        print(f"Se intentaran sincronizar hasta {selected} sesiones en calendario '{args.calendar_id}'.")
+        try:
+            confirmed = _confirm_with_user("Continuar con sync real a Google Calendar? [s/N]: ")
+        except RuntimeError as exc:
+            print(str(exc))
+            return 1
+        if not confirmed:
+            print("Sincronizacion cancelada por el usuario.")
+            return 0
 
     try:
         result = sync_sessions_to_google_calendar(
