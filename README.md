@@ -1,112 +1,158 @@
-# FIUBA Local Assistant
+# FIUBA Assistant
 
-Asistente de estudio FIUBA para indexar materiales locales y consultar desde CLI o UI web.
+Asistente local para estudiar con apuntes propios. Indexa materiales por materia, recupera fragmentos relevantes y responde preguntas con fuentes visibles.
 
-## Que trae este repo
+## Foco actual
 
-- Indexado incremental por materia en SQLite + FTS5.
-- Busqueda local de fragmentos relevantes.
-- Respuesta con Ollama local o APIs cloud (OpenAI/Gemini).
-- UI web local en `http://127.0.0.1:8787`.
-- Modulo de planificacion de estudio y exportacion a calendario.
+El producto esta concentrado en una sola experiencia:
+
+1. Descargar o copiar apuntes a una carpeta local.
+2. Indexar una materia.
+3. Preguntar desde la UI.
+4. Revisar respuesta, fuentes y confianza.
+
+Las ideas fuera de foco inmediato, como OCR asistido, Google Drive, debate de ejercicios y calendario de estudio, estan documentadas en `docs/PRD_FUTURE.md`.
 
 ## Requisitos
 
 - Python 3.10+.
 - `pip`.
+- Opcional: API key de Gemini u OpenAI.
 - Opcional: Ollama para modo local.
-- Opcional: Docker + Docker Compose.
 
-## Configuracion
-
-1. Copia variables de entorno:
+## Quick Start
 
 ```bash
+cd fiuba-local-assistant
+python3 -m venv .venv
+.venv/bin/python -m pip install -e ".[pdf]"
 cp .env.example .env
 ```
 
-2. Completa solo lo que necesites en `.env`:
+Edita `.env` si queres usar motores cloud:
 
-- `OPENAI_API_KEY` para motor OpenAI.
-- `GEMINI_API_KEY` para motor Gemini.
-- `FIUBA_ROOT`, `FIUBA_STATE_DIR`, `FIUBA_DB_PATH` son opcionales.
-
-Defaults si no defines rutas:
-
-- `FIUBA_ROOT=~/dev/Facultad`
-- `FIUBA_STATE_DIR=~/.fiuba_local`
-- `FIUBA_DB_PATH=~/.fiuba_local/index.db`
-
-## Uso local (sin Docker)
-
-Instalacion editable:
-
-```bash
-python3 -m pip install -e .
+```env
+GEMINI_API_KEY=...
+OPENAI_API_KEY=...
 ```
 
-Opcional para extraer mejor texto de PDF:
+Para el setup minimo alcanza con configurar una sola key. Recomendado:
 
-```bash
-python3 -m pip install pypdf
+```env
+GEMINI_API_KEY=tu_api_key
 ```
 
-Comandos principales:
+Prepara materiales:
 
-```bash
-# Indexar una materia
-PYTHONPATH=src python3 -m fiuba_local.cli index --materia "Ind Extractivas"
-
-# Buscar
-PYTHONPATH=src python3 -m fiuba_local.cli ask "balance de masa y energia" --materia "Ind Extractivas" --top-k 5
-
-# Levantar UI web
-PYTHONPATH=src python3 -m fiuba_local.cli serve --host 127.0.0.1 --port 8787
+```text
+~/dev/Facultad/<Materia>/
 ```
 
-Tambien puedes usar `make`:
+Ejemplo:
 
-```bash
-make install
-make test
-make run
+```text
+~/dev/Facultad/Ind Extractivas/
 ```
 
-## Uso con Docker
-
-1. Define carpetas en variables de entorno (opcional). Si no lo haces, usa `./Facultad` y `./.fiuba_local` dentro del repo.
+Indexa una materia:
 
 ```bash
-export FIUBA_MATERIAS_DIR=/ruta/a/tu/Facultad
-export FIUBA_DATA_DIR=/ruta/a/tu/.fiuba_local
+.venv/bin/python -m fiuba_local.cli \
+  --root ~/dev/Facultad \
+  --db ~/.fiuba_local/index.db \
+  index --materia "Ind Extractivas"
 ```
 
-2. Levanta el servicio:
+Levanta la UI:
 
 ```bash
-make docker-up
+.venv/bin/python -m fiuba_local.cli \
+  --root ~/dev/Facultad \
+  --db ~/.fiuba_local/index.db \
+  serve --host 127.0.0.1 --port 8787
 ```
 
-3. Abre la UI en:
+Abri:
 
 ```text
 http://127.0.0.1:8787
 ```
 
-Nota de Ollama en Docker:
+## CLI Util
 
-- El compose apunta por defecto a `http://host.docker.internal:11434`.
-- En Linux, puede requerir ajustar `OLLAMA_HOST` manualmente.
+Ver estado del indice:
 
-## Datos que NO se versionan
+```bash
+.venv/bin/python -m fiuba_local.cli \
+  --root ~/dev/Facultad \
+  --db ~/.fiuba_local/index.db \
+  stats
+```
 
-Este repo ignora por defecto:
+Buscar sin generar respuesta:
+
+```bash
+.venv/bin/python -m fiuba_local.cli \
+  --root ~/dev/Facultad \
+  --db ~/.fiuba_local/index.db \
+  ask "balance de masa y energia" --materia "Ind Extractivas" --top-k 5
+```
+
+Diagnosticar PDFs con poco texto extraible:
+
+```bash
+.venv/bin/python -m fiuba_local.cli \
+  --root ~/dev/Facultad \
+  ocr-check --materia "Ind Extractivas" --only-needs-ocr
+```
+
+## Desarrollo
+
+Instala dependencias de desarrollo:
+
+```bash
+.venv/bin/python -m pip install -e ".[dev]"
+```
+
+Corre tests:
+
+```bash
+make PYTHON=.venv/bin/python test
+```
+
+## Docker
+
+Uso opcional:
+
+```bash
+export FIUBA_MATERIAS_DIR=/ruta/a/tu/Facultad
+export FIUBA_DATA_DIR=/ruta/a/tu/.fiuba_local
+make docker-up
+```
+
+Luego abrir:
+
+```text
+http://127.0.0.1:8787
+```
+
+## Datos Locales
+
+No se versionan:
 
 - `.env`
-- `.venv`
+- `.venv/`
 - `.fiuba_local/`
 - `Facultad/`
-- archivos de cache y binarios locales
+- bases SQLite
+- caches y binarios locales
+
+## Documentacion
+
+- `docs/PRD.md`: producto actual.
+- `docs/STATUS.md`: estado operativo.
+- `docs/PRD_FUTURE.md`: ideas futuras o pausadas.
+- `docs/EVAL_SET.md`: set de evaluacion.
 
 ## Estructura
 
@@ -120,21 +166,4 @@ fiuba-local-assistant/
 ├── Makefile
 ├── .env.example
 └── pyproject.toml
-```
-
-## Publicar en GitHub
-
-```bash
-cd /ruta/a/fiuba-local-assistant
-git init
-git add .
-git commit -m "chore: prepare project for sharing (docker + docs)"
-```
-
-Luego crea repo remoto y sube:
-
-```bash
-git branch -M main
-git remote add origin https://github.com/<usuario>/<repo>.git
-git push -u origin main
 ```

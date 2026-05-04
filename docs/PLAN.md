@@ -1,12 +1,16 @@
 # Plan de Ejecucion v2 (Chat-First)
 
+> Nota 2026-05-04: este plan queda como documento historico. El foco actual esta en
+> `docs/PRD.md`; los modos `resumir`, `debatir` y OCR UI quedan como futuras
+> iniciativas en `docs/PRD_FUTURE.md`.
+
 ## Estado actual
 Base tecnica lista:
 1. Indexado incremental por materia.
 2. Busqueda local en SQLite + FTS5.
 3. Consulta asistida con soporte Ollama/OpenAI/Gemini (opcional por motor).
-4. UI localhost con tabs `Preguntar` y `OCR Check`.
-5. Deteccion de OCR por CLI y por endpoint UI.
+4. UI localhost enfocada en `Preguntar`.
+5. Deteccion de OCR por CLI como diagnostico tecnico.
 
 ## Sprint A - Operacion chat-first (actual)
 Objetivo: estandarizar el flujo de estudio conmigo como motor principal.

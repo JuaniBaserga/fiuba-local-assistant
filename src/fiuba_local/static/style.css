@@ -1,7 +1,7 @@
 :root {
   --bg: #f6f5f4;
   --surface: #ffffff;
-  --surface-soft: #fcfbfa;
+  --surface-soft: #faf9f7;
   --text: #161514;
   --muted: #5d5853;
   --line: #dfdbd7;
@@ -21,32 +21,23 @@ body {
   margin: 0;
   font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
   color: var(--text);
-  background: radial-gradient(circle at 15% 10%, #ffffff 0%, #f3f0ed 50%, #eeebe8 100%);
+  background: #f4f2ef;
   min-height: 100vh;
 }
 
-.bg-mesh {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(600px circle at 82% -4%, rgba(0, 117, 222, 0.15), transparent 65%),
-    radial-gradient(540px circle at -8% 98%, rgba(42, 157, 153, 0.12), transparent 62%);
-}
-
 .app-shell {
-  width: min(1120px, calc(100vw - 48px));
+  width: min(1180px, calc(100vw - 48px));
   margin: 28px auto;
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 310px 1fr;
   gap: 18px;
 }
 
 .control-panel,
 .chat-panel {
-  background: linear-gradient(180deg, var(--surface) 0%, var(--surface-soft) 100%);
+  background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  border-radius: 8px;
   box-shadow: var(--shadow-card);
   position: relative;
   z-index: 1;
@@ -64,13 +55,12 @@ h1,
 h2,
 h3 {
   margin: 0;
-  font-family: "Fraunces", "Iowan Old Style", "Times New Roman", serif;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
 }
 
 h1 {
-  font-size: 2rem;
-  line-height: 1.05;
+  font-size: 1.45rem;
+  line-height: 1.15;
 }
 
 .subtitle {
@@ -117,7 +107,7 @@ textarea:focus {
 
 textarea {
   resize: vertical;
-  min-height: 160px;
+  min-height: 210px;
 }
 
 .inline-grid {
@@ -145,6 +135,18 @@ textarea {
   text-transform: uppercase;
 }
 
+.status-pill[data-mode="loading"] {
+  background: #eef4ff;
+  border-color: #cddaf1;
+  color: #234e7b;
+}
+
+.status-pill[data-mode="error"] {
+  background: #fff1ef;
+  border-color: #f4c9c4;
+  color: #8f3428;
+}
+
 .actions {
   margin-top: 12px;
   display: flex;
@@ -152,46 +154,10 @@ textarea {
   align-items: center;
 }
 
-.tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.tab-btn {
-  border: 1px solid #d7d2cb;
-  border-radius: 999px;
-  background: #f4f1ed;
-  color: #2c2926;
-  font-weight: 700;
-  padding: 8px 14px;
-}
-
-.tab-btn.active {
-  background: linear-gradient(180deg, #0b86ff 0%, var(--accent) 100%);
-  border-color: #0d6ac4;
-  color: #ffffff;
-}
-
-.tab-content {
-  animation: tab-fade 140ms ease-in;
-}
-
-@keyframes tab-fade {
-  from {
-    opacity: 0.4;
-    transform: translateY(2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 button {
   border: none;
-  border-radius: 11px;
-  background: linear-gradient(180deg, #0b86ff 0%, var(--accent) 100%);
+  border-radius: 8px;
+  background: var(--accent);
   color: #fff;
   font-weight: 700;
   padding: 10px 15px;
@@ -251,6 +217,14 @@ button.small {
   font-size: 0.88rem;
 }
 
+.materia-list li.indexed {
+  color: #186865;
+}
+
+.materia-list li.pending {
+  color: #68625c;
+}
+
 .control-actions {
   margin-top: 10px;
 }
@@ -272,7 +246,7 @@ button.small {
   margin-top: 16px;
   border: 1px solid var(--line);
   background: #fff;
-  border-radius: var(--radius-md);
+  border-radius: 8px;
   padding: 14px;
 }
 
@@ -311,13 +285,10 @@ button.small {
   line-height: 1.4;
 }
 
-.ocr-list {
-  margin: 6px 0 0;
-  padding-left: 18px;
-}
-
-.ocr-list li {
-  margin: 8px 0;
+.sources-card li p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
   line-height: 1.45;
 }
 
@@ -326,13 +297,17 @@ button.small {
 }
 
 details {
-  margin-top: 10px;
+  margin-top: 14px;
 }
 
 details summary {
   cursor: pointer;
   font-weight: 600;
   color: #393632;
+}
+
+.advanced summary {
+  font-size: 0.9rem;
 }
 
 @media (max-width: 900px) {

@@ -1,5 +1,10 @@
 # Implementation Log
 
+> Nota 2026-05-04: este archivo es historico. Algunas superficies mencionadas
+> abajo, como Codex prompt mode y OCR en UI, fueron retiradas del flujo principal
+> para concentrar el producto en respuestas con fuentes. Ver `docs/PRD.md` y
+> `docs/PRD_FUTURE.md`.
+
 ## 2026-04-18
 
 ### Core architecture

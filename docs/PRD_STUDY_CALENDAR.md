@@ -1,5 +1,9 @@
 # PRD v1.1 - Study Planner + Calendar Sync (FIUBA Local Assistant)
 
+> Nota 2026-05-04: este PRD queda como iniciativa futura/experimental. No forma
+> parte del foco actual del producto, que es mejorar respuestas con fuentes. Ver
+> `docs/PRD.md` y la entrada F-05/F-06 en `docs/PRD_FUTURE.md`.
+
 ## 0. Control del documento
 - Version: `1.1`
 - Fecha: `2026-04-18`

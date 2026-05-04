@@ -1,49 +1,58 @@
 # Status Snapshot
 
 ## Last update
-- Date: `2026-04-18`
-- Scope: `fiuba-local-assistant` (chat-first + localhost UI)
+- Date: `2026-05-04`
+- Scope: `fiuba-local-assistant` (respuesta con fuentes + localhost UI)
 
 ## Current state
-- Product direction is stable (`chat-first`).
-- Local retrieval stack works (SQLite + FTS5 + incremental index).
-- Localhost UI is running with tabs:
-1. `Preguntar`
-2. `OCR Check`
+- Product focus: responder preguntas con fuentes usando apuntes locales.
+- Local retrieval stack works: SQLite + FTS5 + incremental index.
+- Localhost UI is simplified to one main workflow: `Preguntar`.
 - Multi-engine answering is available:
-1. `Codex prompt mode`
+1. `Gemini API`
 2. `OpenAI API`
-3. `Gemini API`
-4. `Ollama`
-- Materias now come from filesystem and show indexed status.
+3. `Ollama`
+- Materias come from filesystem and show indexed status.
 
 ## What works today
-1. Index one materia from CLI.
-2. Ask questions from UI with source list.
-3. Use `.env` for API keys.
-4. Detect OCR candidates from CLI and UI.
-5. Refresh visible materia list and see `indexada` / `sin indexar`.
+1. Indexar una materia desde CLI o UI.
+2. Preguntar desde UI con lista de fuentes y extractos.
+3. Usar `.env` para API keys.
+4. Refrescar materias y ver `indexada` / `sin indexar`.
+5. Detectar candidatos OCR desde CLI con `ocr-check` si hace falta diagnostico tecnico.
 
 ## Current gaps
 1. Source citations are file/chunk level, not page-level.
-2. OCR is detection + suggested command, not one-click execution.
-3. Debate workflow exists in docs/protocol but is not fully UI-productized.
-4. UI index action exists; bulk indexing policy and progress UX can improve.
+2. Ranking is basic and needs evaluation with real questions.
+3. OCR is CLI-only diagnostic, not a productized UI flow.
+4. `study` planner/calendar exists as experimental/future surface, not current product focus.
 
 ## Top 3 next steps
-1. Add page-aware citations in extraction/index.
-2. Add one-click OCR execution flow (`ocrmypdf` integration) with safe confirmation.
-3. Add dedicated `Debatir` tab and strict output template.
+1. Build/evaluate a real question set per materia.
+2. Improve retrieval/rerank and no-context behavior.
+3. Add page-aware citations in extraction/index.
 
-## Risks / blockers
-1. PDF extraction quality varies by source type.
-2. OCR tools may require local install and can be slow on large files.
-3. API cost/latency depends on selected model provider.
+## Future PRDs
+Out-of-focus or later-stage ideas live in:
+
+- `docs/PRD_FUTURE.md`
+
+Includes:
+1. OCR assisted flow.
+2. Debate mode.
+3. Summary mode.
+4. Study planner/calendar.
+5. Google Calendar sync.
+6. Google Drive ingestion.
+7. Advanced admin UI.
 
 ## Retake commands
 ```bash
 cd /Users/juanibaserga/dev/fiuba-local-assistant
-PYTHONPATH=src python3 -m fiuba_local.cli serve --host 127.0.0.1 --port 8787
+.venv/bin/python -m fiuba_local.cli \
+  --root /Users/juanibaserga/dev/Facultad \
+  --db /Users/juanibaserga/dev/.fiuba_local/index.db \
+  serve --host 127.0.0.1 --port 8787
 ```
 
 Open:
@@ -53,12 +62,13 @@ http://127.0.0.1:8787
 
 Quick checks:
 ```bash
-PYTHONPATH=src python3 -m fiuba_local.cli stats
-PYTHONPATH=src python3 -m fiuba_local.cli ocr-check --materia "Ind Extractivas" --only-needs-ocr
+.venv/bin/python -m fiuba_local.cli \
+  --root /Users/juanibaserga/dev/Facultad \
+  --db /Users/juanibaserga/dev/.fiuba_local/index.db \
+  stats
 ```
 
 ## Related docs
 - `docs/PRD.md`
-- `docs/PLAN.md`
-- `docs/IMPLEMENTATION_LOG.md`
-- `docs/SPRINT_A_CHECKLIST.md`
+- `docs/PRD_FUTURE.md`
+- `docs/EVAL_SET.md`

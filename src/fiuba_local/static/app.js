@@ -11,75 +11,40 @@ const topkInput = document.getElementById("topk");
 const timeoutInput = document.getElementById("timeout");
 const questionInput = document.getElementById("question");
 const askBtn = document.getElementById("ask-btn");
-const copyBtn = document.getElementById("copy-btn");
-
 const answerCard = document.getElementById("answer-card");
 const sourcesCard = document.getElementById("sources-card");
 const answerText = document.getElementById("answer-text");
 const modelBadge = document.getElementById("model-badge");
 const sourcesList = document.getElementById("sources-list");
-const codexPromptWrap = document.getElementById("codex-prompt-wrap");
-const codexPrompt = document.getElementById("codex-prompt");
-const tabAskBtn = document.getElementById("tab-ask-btn");
-const tabOcrBtn = document.getElementById("tab-ocr-btn");
-const tabAsk = document.getElementById("tab-ask");
-const tabOcr = document.getElementById("tab-ocr");
-const ocrBtn = document.getElementById("ocr-btn");
-const ocrCard = document.getElementById("ocr-card");
-const ocrSummary = document.getElementById("ocr-summary");
-const ocrList = document.getElementById("ocr-list");
-const ocrMinTotalInput = document.getElementById("ocr-min-total");
-const ocrMinPageInput = document.getElementById("ocr-min-page");
-const ocrLimitInput = document.getElementById("ocr-limit");
-const ocrOnlyNeedsSelect = document.getElementById("ocr-only-needs");
 
-let latestPromptForCodex = "";
 const MODEL_BY_ENGINE = {
-  codex: "gemini-2.5-flash",
   gemini: "gemini-2.5-flash",
   openai: "gpt-4.1-mini",
   ollama: "qwen2.5:3b-instruct",
 };
 
 function applyEngineDefaultModel() {
-  const engine = engineSelect.value || "codex";
+  const engine = engineSelect.value || "gemini";
   modelInput.value = MODEL_BY_ENGINE[engine] || modelInput.value;
 }
 
 function setStatus(text, mode = "idle") {
   statusPill.textContent = text;
-  if (mode === "loading") {
-    statusPill.style.background = "#eef4ff";
-    statusPill.style.borderColor = "#cddaf1";
-    statusPill.style.color = "#234e7b";
-    return;
-  }
-  if (mode === "error") {
-    statusPill.style.background = "#fff1ef";
-    statusPill.style.borderColor = "#f4c9c4";
-    statusPill.style.color = "#8f3428";
-    return;
-  }
-  statusPill.style.background = "#eff9f8";
-  statusPill.style.borderColor = "#cddfdd";
-  statusPill.style.color = "#186865";
+  statusPill.dataset.mode = mode;
 }
 
 function renderSources(sources) {
   sourcesList.innerHTML = "";
   for (const source of sources) {
     const li = document.createElement("li");
-    li.textContent = `[${source.id}] ${source.file} (chunk ${source.chunk})`;
+    const title = document.createElement("div");
+    const excerpt = document.createElement("p");
+    title.textContent = `[${source.id}] ${source.file} (chunk ${source.chunk})`;
+    excerpt.textContent = source.excerpt || "";
+    li.appendChild(title);
+    li.appendChild(excerpt);
     sourcesList.appendChild(li);
   }
-}
-
-function setActiveTab(tabName) {
-  const askActive = tabName === "ask";
-  tabAsk.classList.toggle("hidden", !askActive);
-  tabOcr.classList.toggle("hidden", askActive);
-  tabAskBtn.classList.toggle("active", askActive);
-  tabOcrBtn.classList.toggle("active", !askActive);
 }
 
 function formatIndexResult(results) {
@@ -87,12 +52,12 @@ function formatIndexResult(results) {
   const lines = [];
   for (const item of results) {
     if (!item.ok) {
-      lines.push(`- ${item.materia}: ERROR (${item.error || "unknown"})`);
+      lines.push(`- ${item.materia}: error (${item.error || "desconocido"})`);
       continue;
     }
     const s = item.stats || {};
     lines.push(
-      `- ${item.materia}: scanned=${s.scanned ?? 0}, updated=${s.updated ?? 0}, unchanged=${s.skipped_unchanged ?? 0}, warn=${s.warnings ?? 0}`
+      `- ${item.materia}: ${s.updated ?? 0} actualizados, ${s.skipped_unchanged ?? 0} sin cambios, ${s.warnings ?? 0} advertencias`
     );
   }
   return lines.join("\n");
@@ -110,11 +75,13 @@ async function loadMaterias() {
     const materias = data.materias || [];
     const indexedMaterias = data.indexed_materias || [];
     const items = data.items || materias.map((name) => ({ name, indexed: false }));
+
     materiaSelect.innerHTML = "";
     const allOpt = document.createElement("option");
     allOpt.value = "";
     allOpt.textContent = "Todas";
     materiaSelect.appendChild(allOpt);
+
     materiaList.innerHTML = "";
     for (const materia of materias) {
       const opt = document.createElement("option");
@@ -122,6 +89,7 @@ async function loadMaterias() {
       opt.textContent = materia;
       materiaSelect.appendChild(opt);
     }
+
     if (items.length === 0) {
       const li = document.createElement("li");
       li.textContent = "No se detectaron materias en la carpeta raiz.";
@@ -129,11 +97,12 @@ async function loadMaterias() {
     } else {
       for (const item of items) {
         const li = document.createElement("li");
-        const status = item.indexed ? "indexada" : "sin indexar";
-        li.textContent = `${item.name} (${status})`;
+        li.className = item.indexed ? "indexed" : "pending";
+        li.textContent = `${item.name} · ${item.indexed ? "indexada" : "sin indexar"}`;
         materiaList.appendChild(li);
       }
     }
+
     materiaCount.textContent = `Detectadas: ${materias.length} | Indexadas: ${indexedMaterias.length}`;
   } catch {
     materiaCount.textContent = "Detectadas: error";
@@ -145,24 +114,21 @@ async function loadMaterias() {
 async function ask() {
   const question = questionInput.value.trim();
   if (!question) {
-    setStatus("Question required", "error");
+    setStatus("Falta pregunta", "error");
     questionInput.focus();
     return;
   }
 
   askBtn.disabled = true;
-  setStatus("Thinking...", "loading");
+  setStatus("Pensando", "loading");
   answerCard.classList.add("hidden");
   sourcesCard.classList.add("hidden");
-  copyBtn.classList.add("hidden");
-  codexPromptWrap.classList.add("hidden");
-  latestPromptForCodex = "";
 
   const payload = {
     question,
     materia: materiaSelect.value || null,
-    engine: engineSelect.value || "codex",
-    model: modelInput.value.trim() || "qwen2.5:3b-instruct",
+    engine: engineSelect.value || "gemini",
+    model: modelInput.value.trim() || MODEL_BY_ENGINE[engineSelect.value || "gemini"],
     top_k: Number(topkInput.value || 6),
     timeout_sec: Number(timeoutInput.value || 300),
   };
@@ -175,21 +141,15 @@ async function ask() {
     });
     const data = await resp.json();
     if (!resp.ok) {
-      throw new Error(data.error || "request failed");
+      throw new Error(data.error || "fallo la consulta");
     }
 
     answerText.textContent = data.answer || "";
     modelBadge.textContent = data.model || payload.model;
     renderSources(data.sources || []);
-    if (data.prompt_for_codex) {
-      latestPromptForCodex = data.prompt_for_codex;
-      codexPrompt.textContent = latestPromptForCodex;
-      codexPromptWrap.classList.remove("hidden");
-      copyBtn.classList.remove("hidden");
-    }
     answerCard.classList.remove("hidden");
     sourcesCard.classList.remove("hidden");
-    setStatus("Done");
+    setStatus("Listo");
   } catch (err) {
     answerText.textContent = `Error: ${err.message}`;
     modelBadge.textContent = payload.model;
@@ -201,72 +161,10 @@ async function ask() {
   }
 }
 
-function renderOcrResults(data) {
-  const results = data.results || [];
-  ocrList.innerHTML = "";
-  if (!results.length) {
-    const li = document.createElement("li");
-    li.textContent = "No se detectaron candidatos OCR con los filtros actuales.";
-    ocrList.appendChild(li);
-    return;
-  }
-
-  for (const item of results) {
-    const li = document.createElement("li");
-    const pages = item.pages == null ? "?" : item.pages;
-    const avg =
-      item.avg_chars_per_page == null ? "?" : Number(item.avg_chars_per_page).toFixed(1);
-    li.textContent =
-      `[${item.needs_ocr ? "OCR" : "OK"}] ${item.path} | pages=${pages} chars=${item.total_chars} avg=${avg} | razon=${item.reason} | cmd: ${item.suggested_cmd}`;
-    ocrList.appendChild(li);
-  }
-}
-
-async function runOcrScan() {
-  ocrBtn.disabled = true;
-  setStatus("Scanning...", "loading");
-  ocrCard.classList.add("hidden");
-
-  const payload = {
-    materia: materiaSelect.value || null,
-    min_total_chars: Number(ocrMinTotalInput.value || 120),
-    min_chars_per_page: Number(ocrMinPageInput.value || 60),
-    limit: Number(ocrLimitInput.value || 100),
-    only_needs_ocr: ocrOnlyNeedsSelect.value !== "false",
-  };
-
-  try {
-    const resp = await fetch("/api/ocr/check", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await resp.json();
-    if (!resp.ok) {
-      throw new Error(data.error || "ocr request failed");
-    }
-
-    renderOcrResults(data);
-    ocrSummary.textContent = `${data.count} archivos`;
-    ocrCard.classList.remove("hidden");
-    setStatus("Done");
-  } catch (err) {
-    ocrList.innerHTML = "";
-    const li = document.createElement("li");
-    li.textContent = `Error: ${err.message}`;
-    ocrList.appendChild(li);
-    ocrSummary.textContent = "Error";
-    ocrCard.classList.remove("hidden");
-    setStatus("Error", "error");
-  } finally {
-    ocrBtn.disabled = false;
-  }
-}
-
 async function runIndex() {
   indexBtn.disabled = true;
   refreshMateriasBtn.disabled = true;
-  setStatus("Indexing...", "loading");
+  setStatus("Indexando", "loading");
   indexResult.classList.add("hidden");
   indexResult.textContent = "";
 
@@ -279,12 +177,12 @@ async function runIndex() {
     });
     const data = await resp.json();
     if (!resp.ok) {
-      throw new Error(data.error || "index request failed");
+      throw new Error(data.error || "fallo el indexado");
     }
     indexResult.textContent = formatIndexResult(data.results || []);
     indexResult.classList.remove("hidden");
     await loadMaterias();
-    setStatus("Done");
+    setStatus("Listo");
   } catch (err) {
     indexResult.textContent = `Error: ${err.message}`;
     indexResult.classList.remove("hidden");
@@ -296,23 +194,14 @@ async function runIndex() {
 }
 
 askBtn.addEventListener("click", ask);
-ocrBtn.addEventListener("click", runOcrScan);
-copyBtn.addEventListener("click", async () => {
-  if (!latestPromptForCodex) return;
-  await navigator.clipboard.writeText(latestPromptForCodex);
-  setStatus("Copied");
-});
 questionInput.addEventListener("keydown", (ev) => {
   if ((ev.metaKey || ev.ctrlKey) && ev.key === "Enter") {
     ask();
   }
 });
-tabAskBtn.addEventListener("click", () => setActiveTab("ask"));
-tabOcrBtn.addEventListener("click", () => setActiveTab("ocr"));
 refreshMateriasBtn.addEventListener("click", loadMaterias);
 indexBtn.addEventListener("click", runIndex);
-
 engineSelect.addEventListener("change", applyEngineDefaultModel);
+
 applyEngineDefaultModel();
-setActiveTab("ask");
 loadMaterias();

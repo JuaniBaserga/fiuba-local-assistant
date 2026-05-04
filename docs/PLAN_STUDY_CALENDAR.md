@@ -1,5 +1,8 @@
 # Plan de ejecucion - Study Planner + Calendar Sync
 
+> Nota 2026-05-04: este plan queda como iniciativa futura/experimental. El foco
+> actual esta en respuestas con fuentes; ver `docs/PRD.md` y `docs/PRD_FUTURE.md`.
+
 ## Estado actual (2026-04-18)
 Resumen por sprint:
 1. Sprint 0: `Completado`

@@ -5,10 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fiuba-local-assistant"
 version = "0.1.0"
-description = "Asistente de estudio FIUBA 100% local (MVP fase 1)"
+description = "Asistente local para estudiar con apuntes propios y respuestas citadas"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
+
+[project.optional-dependencies]
+pdf = ["pypdf>=4.0"]
+dev = ["pytest>=8.0", "pypdf>=4.0"]
 
 [project.scripts]
 fiuba-local = "fiuba_local.cli:main"

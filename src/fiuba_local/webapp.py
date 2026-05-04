@@ -18,7 +18,6 @@ from .cloud_llm import (
 )
 from .envfile import load_env_file
 from .indexer import index_materia
-from .ocr_scan import scan_ocr_candidates
 from .ollama_client import OllamaError, generate_answer
 from .search import rank_hits, search_chunks
 
@@ -55,22 +54,6 @@ def _build_context(hits) -> str:
         src = f"{Path(hit.path).name} (chunk {hit.chunk_idx})"
         blocks.append(f"[S{i}] {src}\n{hit.text}")
     return "\n\n".join(blocks)
-
-
-def _build_codex_prompt(question: str, materia: str | None, hits) -> str:
-    context = _build_context(hits)
-    materia_line = materia if materia else "(no especificada)"
-    return (
-        "tipo: preguntar\n"
-        f"materia: {materia_line}\n"
-        f"tema/enunciado: {question}\n\n"
-        "Instrucciones para el asistente:\n"
-        "- Usa SOLO el contexto adjunto.\n"
-        "- Responde en formato: Respuesta corta, Desarrollo, Chequeo de parcial, Fuentes, Confianza.\n"
-        "- Si falta evidencia, declaralo explicitamente.\n\n"
-        "Contexto recuperado:\n"
-        f"{context}\n"
-    )
 
 
 def _resolve_api_key(primary: str, env_names: list[str]) -> str:
@@ -186,9 +169,6 @@ class StudyHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)
-        if parsed.path == "/api/ocr/check":
-            self._handle_ocr_check()
-            return
         if parsed.path == "/api/index":
             self._handle_index()
             return
@@ -216,7 +196,7 @@ class StudyHandler(BaseHTTPRequestHandler):
         question = str(payload.get("question", "")).strip()
         materia_raw = payload.get("materia")
         materia = str(materia_raw).strip() if materia_raw else None
-        engine = str(payload.get("engine", "ollama")).strip().lower()
+        engine = str(payload.get("engine", "gemini")).strip().lower()
         requested_model = str(payload.get("model", "")).strip()
         timeout_sec = int(payload.get("timeout_sec", self.config.timeout_sec))
         top_k = int(payload.get("top_k", self.config.top_k))
@@ -251,22 +231,6 @@ class StudyHandler(BaseHTTPRequestHandler):
             }
             for i, hit in enumerate(hits, start=1)
         ]
-
-        if engine == "codex":
-            self._json(
-                {
-                    "engine": "codex",
-                    "answer": (
-                        "Este modo prepara el contexto para que Codex (chat) sea el motor. "
-                        "Copia el bloque y pegalo en esta conversacion."
-                    ),
-                    "prompt_for_codex": _build_codex_prompt(question, materia, hits),
-                    "model": "codex-chat",
-                    "materia": materia,
-                    "sources": sources,
-                }
-            )
-            return
 
         context_block = _build_context(hits)
         try:
@@ -310,78 +274,6 @@ class StudyHandler(BaseHTTPRequestHandler):
                 "model": llm.model,
                 "materia": materia,
                 "sources": sources,
-            }
-        )
-
-    def _handle_ocr_check(self) -> None:
-        raw_size = self.headers.get("Content-Length", "0")
-        try:
-            content_length = int(raw_size)
-        except ValueError:
-            self._json({"error": "invalid content-length"}, status=HTTPStatus.BAD_REQUEST)
-            return
-        if content_length <= 0 or content_length > 1_000_000:
-            self._json({"error": "invalid request body size"}, status=HTTPStatus.BAD_REQUEST)
-            return
-
-        try:
-            body = self.rfile.read(content_length)
-            payload = json.loads(body.decode("utf-8"))
-        except Exception:
-            self._json({"error": "invalid json body"}, status=HTTPStatus.BAD_REQUEST)
-            return
-
-        materia_raw = payload.get("materia")
-        materia = str(materia_raw).strip() if materia_raw else None
-        min_total_chars = int(payload.get("min_total_chars", 120))
-        min_chars_per_page = int(payload.get("min_chars_per_page", 60))
-        only_needs_ocr = bool(payload.get("only_needs_ocr", True))
-        limit = int(payload.get("limit", 100))
-        limit = max(1, min(limit, 500))
-
-        if materia:
-            scope = self.config.root_path / materia
-            if not scope.exists() or not scope.is_dir():
-                self._json({"error": f"materia not found: {materia}"}, status=HTTPStatus.NOT_FOUND)
-                return
-        else:
-            scope = self.config.root_path
-
-        results = scan_ocr_candidates(
-            scope=scope,
-            min_total_chars=min_total_chars,
-            min_chars_per_page=min_chars_per_page,
-        )
-        if only_needs_ocr:
-            results = [r for r in results if r.needs_ocr]
-        results = results[:limit]
-
-        output = []
-        for item in results:
-            out_path = item.path.with_name(item.path.stem + ".ocr.pdf")
-            output.append(
-                {
-                    "path": str(item.path),
-                    "pages": item.pages,
-                    "total_chars": item.total_chars,
-                    "avg_chars_per_page": item.avg_chars_per_page,
-                    "warning": item.warning,
-                    "needs_ocr": item.needs_ocr,
-                    "reason": item.reason,
-                    "suggested_output": str(out_path),
-                    "suggested_cmd": f"ocrmypdf --skip-text '{item.path}' '{out_path}'",
-                }
-            )
-
-        self._json(
-            {
-                "scope": str(scope),
-                "count": len(output),
-                "results": output,
-                "thresholds": {
-                    "min_total_chars": min_total_chars,
-                    "min_chars_per_page": min_chars_per_page,
-                },
             }
         )
 

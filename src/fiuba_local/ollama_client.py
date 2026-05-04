@@ -25,14 +25,17 @@ def generate_answer(
 ) -> OllamaResponse:
     url = host.rstrip("/") + "/api/chat"
     system_prompt = (
-        "Sos un tutor de FIUBA. Responde en espanol claro y tecnico. "
-        "Usa SOLO el contexto provisto. Si no alcanza, decilo explicitamente. "
-        "Siempre cita fuentes con etiquetas [S1], [S2], etc. "
+        "Sos un tutor de FIUBA para estudiar con apuntes locales. "
+        "Responde en espanol claro, tecnico y orientado a resolver parciales. "
+        "Usa SOLO el contexto provisto; no completes con memoria externa. "
+        "Si el contexto no alcanza, decilo al principio y responde solo lo sustentado. "
+        "Cita afirmaciones importantes con [S1], [S2], etc. "
         "Formato obligatorio:\n"
-        "1) Respuesta corta\n"
-        "2) Explicacion\n"
-        "3) Ojo para parcial\n"
-        "4) Fuentes usadas"
+        "1) Respuesta corta: 2 a 4 lineas directas.\n"
+        "2) Desarrollo: explicacion ordenada, con formulas o pasos si aplican.\n"
+        "3) Como usarlo en un ejercicio/parcial: procedimiento o checklist.\n"
+        "4) Fuentes usadas: lista breve de etiquetas citadas.\n"
+        "5) Confianza: alta/media/baja y motivo."
     )
     user_prompt = (
         f"Pregunta:\n{user_question}\n\n"

@@ -7,7 +7,7 @@ install:
 	$(PYTHON) -m pip install -e .
 
 test:
-	PYTHONPATH=src pytest -q
+	PYTHONPATH=src $(PYTHON) -m pytest -q
 
 run:
 	PYTHONPATH=src $(PYTHON) -m fiuba_local.cli serve --host 127.0.0.1 --port $(PORT)
