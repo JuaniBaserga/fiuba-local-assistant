@@ -87,7 +87,9 @@ Planificar sesiones de estudio segun fechas academicas, disponibilidad y avance.
 6. `study sync-gcal`
 
 ### Estado
-Hay implementacion experimental/local en el repo. No forma parte del producto principal de respuesta.
+Hay implementacion local operable por CLI y `/calendar`, con servicio compartido,
+export ICS, reportes y pruebas automatizadas. No forma parte del producto
+principal de respuesta y la iniciativa I-04 sigue pausada.
 
 ### Razon para diferir
 El feedback recibido prioriza mejorar respuestas. Calendario agrega superficie, permisos y validaciones que no ayudan a demostrar calidad de respuesta.

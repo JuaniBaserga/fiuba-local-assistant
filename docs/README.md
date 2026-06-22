@@ -4,7 +4,7 @@
 - Estado general: `MVP local funcional + discovery semantico`
 - Producto activo: `Respuestas con fuentes`
 - Discovery activo: `Cerebro semantico`
-- Tests: `9 passed`
+- Tests: `23 passed`
 
 Este README es la fuente de verdad operativa del proyecto. Resume que existe,
 que se esta priorizando y que cambio recientemente. Los detalles estables de
@@ -117,6 +117,11 @@ Tests:
 
 ### 2026-06-22
 
+- Se endureció y refactorizó el planner: límites diarios estrictos, sesiones
+  siempre anteriores al objetivo, validación compartida entre CLI y HTTP y
+  persistencia JSON atómica.
+- Se separaron los comandos CLI y handlers web por dominio, con `StudyService`
+  como capa común y pruebas de regresión para entrypoints, estado e ICS.
 - Se incorporó un índice semántico experimental con embeddings locales,
   trazabilidad por página y comandos `semantic index`, `semantic search` y
   `semantic stats`.

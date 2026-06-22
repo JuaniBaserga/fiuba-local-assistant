@@ -1,10 +1,10 @@
-# PRD v1.1 - Study Planner + Calendar Sync (FIUBA Local Assistant)
+# PRD v1.2 - Study Planner + Calendar Sync (FIUBA Local Assistant)
 
 > Estado de portfolio: `Pausada` (`I-04`). No forma parte del foco actual. Ver
 > [`../../README.md`](../../README.md).
 
 ## 0. Control del documento
-- Version: `1.1`
+- Version: `1.2`
 - Fecha: `2026-04-18`
 - Ultima actualizacion: `2026-06-22`
 - Madurez: `Vigente si se retoma`
@@ -17,7 +17,7 @@ Este modulo agrega gestion de estudio al asistente local: toma fechas academicas
 
 El valor principal es operativo: no solo responder dudas, sino convertir cronogramas y fechas reales en un plan accionable y medible.
 
-## 1.1 Evidencia al momento de la pausa (2026-04-18)
+## 1.1 Evidencia disponible (actualizada 2026-06-22)
 Implementado:
 1. `study init`: crea `study_dates.json` y `study_state.json`.
 2. `study plan`: genera sesiones por prioridad y guarda estado.
@@ -25,6 +25,11 @@ Implementado:
 4. `study log`: marca sesiones como completadas.
 5. `study report`: genera CSV y graficos SVG de avance.
 6. `study sync-gcal`: integra Google Calendar con `--dry-run` y cache de sincronizacion.
+7. Pantalla `/calendar` para inicializar, planificar, reportar y descargar ICS.
+8. API local con validacion de requests y manejo explicito de estado invalido.
+9. Planificador con limite diario estricto y prohibicion de sesiones posteriores al evento.
+10. Persistencia atomica de `study_dates.json` y `study_state.json`.
+11. Arquitectura compartida `StudyService` para CLI y web, cubierta por tests de regresion.
 
 Pendiente:
 1. Demo end-to-end con 2-3 materias reales.
@@ -147,8 +152,11 @@ Prioridad por materia:
 Distribucion:
 1. Calcular prioridad normalizada por materia.
 2. Asignar horas semanales proporcionales a prioridad.
-3. Respetar minimo por materia activa y maximo diario configurable.
-4. Reservar porcentaje fijo para repaso espaciado.
+3. Respetar el maximo diario configurable; si no hay capacidad, no sobreasignar.
+4. No generar sesiones posteriores a la fecha objetivo.
+
+El minimo por materia y el porcentaje fijo de repaso espaciado siguen fuera de
+la implementacion v1 y requieren validacion de producto antes de incorporarse.
 
 ## 11. Metricas de exito
 1. `>= 90%` de semanas con plan generado sin errores.
@@ -187,3 +195,5 @@ Opcionales:
 3. `OK` CLI exporta calendario (`ICS`) y reporte visual.
 4. `PARCIAL` Sync Google Calendar implementado; falta validacion real con credenciales de usuario.
 5. `OK` README/documentacion con flujo de uso end-to-end.
+6. `OK` UI local para operar el flujo baseline y descargar ICS.
+7. `OK` Validacion, persistencia atomica y tests automatizados del servicio.

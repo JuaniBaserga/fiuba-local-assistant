@@ -20,6 +20,9 @@ Evidencia tecnica generada:
 1. Subcomandos `study` disponibles en CLI: `init`, `plan`, `export-ics`, `log`, `report`, `sync-gcal`.
 2. Salidas locales verificadas: CSV de plan, CSV de reporte, SVG de visualizacion, archivo ICS.
 3. Dry-run de Google Calendar ejecutado sin creacion real de eventos.
+4. Pantalla `/calendar` conectada a los flujos de init, plan, report e ICS.
+5. `StudyService` compartido por CLI/web, persistencia atomica y validaciones de dominio.
+6. Suite de regresion del repositorio: `23 passed` al 2026-06-22.
 
 ## Contexto
 Este plan implementa el alcance definido en [`PRD.md`](PRD.md) sin bloquear el
@@ -134,6 +137,22 @@ Criterio de cierre:
 Estado:
 1. `Pendiente`.
 2. Proximo objetivo: demo con 2-3 materias reales y guion de presentacion.
+
+## Hardening tecnico - 2026-06-22
+Objetivo:
+- Cerrar bugs de integracion y reducir el costo de mantenimiento sin reactivar
+  la iniciativa en el portfolio.
+
+Estado:
+1. `Completado`.
+2. CLI separada en comandos `core`, `semantic`, `study` y `runtime`.
+3. Web separada en handlers `answer`, `admin` y `study`.
+4. Requests de plan tipados y errores de dominio centralizados.
+5. Estado JSON escrito atomicamente.
+6. Planificador corregido para no exceder carga diaria ni estudiar despues del evento.
+7. Descarga ICS funcional desde la UI.
+
+Este hardening no completa Sprint 5 ni la validacion real de Google Calendar.
 
 ## Riesgos operativos
 1. Datos de entrada inconsistentes.
