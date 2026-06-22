@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
@@ -15,7 +17,25 @@ DEFAULT_STUDY_DATES_PATH = DEFAULT_STATE_DIR / "study_dates.json"
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
+    content = json.dumps(payload, ensure_ascii=True, indent=2) + "\n"
+    temp_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as temp_file:
+            temp_file.write(content)
+            temp_file.flush()
+            os.fsync(temp_file.fileno())
+            temp_path = Path(temp_file.name)
+        os.replace(temp_path, path)
+    finally:
+        if temp_path is not None and temp_path.exists():
+            temp_path.unlink()
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -91,6 +111,10 @@ def load_state(path: Path) -> dict[str, Any]:
 
 def save_state(path: Path, state: dict[str, Any]) -> None:
     _write_json(path, state)
+
+
+def save_dates(path: Path, payload: dict[str, Any]) -> None:
+    _write_json(path, payload)
 
 
 def _parse_event(raw: dict[str, Any]) -> StudyEvent:

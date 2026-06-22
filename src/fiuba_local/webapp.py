@@ -11,23 +11,13 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from .config import DEFAULT_DB_PATH, DEFAULT_FACULTAD_ROOT, DEFAULT_SEMANTIC_DB_PATH
-from .cloud_llm import (
-    CloudLLMError,
-    generate_gemini_answer,
-    generate_openai_answer,
-)
 from .envfile import load_env_file
 from .indexer import index_materia
-from .ollama_client import OllamaError, generate_answer
-from .search import rank_hits, search_chunks
-from .semantic import (
-    DEFAULT_EMBEDDING_MODEL,
-    SentenceTransformerEmbedder,
-    index_semantic_pilot,
-    search_semantic,
-    semantic_stats,
-)
-from .search import stats as fts_stats
+from .study import DEFAULT_STUDY_DATES_PATH, DEFAULT_STUDY_STATE_PATH
+from .web_study import StudyHandlersMixin
+from .semantic import DEFAULT_EMBEDDING_MODEL
+from .web_admin import AdminHandlersMixin
+from .web_answer import AnswerHandlersMixin
 
 
 STATIC_DIR = Path(__file__).parent / "static"
@@ -40,6 +30,8 @@ class AppConfig:
     db_path: Path
     semantic_db_path: Path
     semantic_model: str
+    study_dates_path: Path
+    study_state_path: Path
     ollama_host: str
     openai_api_key: str
     gemini_api_key: str
@@ -59,14 +51,6 @@ def _positive_int(value: str) -> int:
     return n
 
 
-def _build_context(hits) -> str:
-    blocks: list[str] = []
-    for i, hit in enumerate(hits, start=1):
-        src = f"{Path(hit.path).name} (chunk {hit.chunk_idx})"
-        blocks.append(f"[S{i}] {src}\n{hit.text}")
-    return "\n\n".join(blocks)
-
-
 def _resolve_api_key(primary: str, env_names: list[str]) -> str:
     if primary.strip():
         return primary.strip()
@@ -75,24 +59,6 @@ def _resolve_api_key(primary: str, env_names: list[str]) -> str:
         if value:
             return value
     return ""
-
-
-def _resolve_model(engine: str, requested_model: str, config: AppConfig) -> str:
-    model = requested_model.strip()
-    if engine == "gemini":
-        # If UI sends an Ollama/OpenAI model by mistake, use Gemini default.
-        if not model or ":" in model or model.startswith("gpt-"):
-            return config.default_gemini_model
-        return model
-    if engine == "openai":
-        if not model or ":" in model or model.startswith("gemini-"):
-            return config.default_openai_model
-        return model
-    if engine == "ollama":
-        if not model:
-            return config.default_ollama_model
-        return model
-    return model
 
 
 def _list_indexed_materias(db_path: Path) -> list[str]:
@@ -117,7 +83,7 @@ def _list_fs_materias(root_path: Path) -> list[str]:
     return sorted(items, key=lambda s: s.casefold())
 
 
-class StudyHandler(BaseHTTPRequestHandler):
+class StudyHandler(StudyHandlersMixin, AdminHandlersMixin, AnswerHandlersMixin, BaseHTTPRequestHandler):
     config: AppConfig
 
     def _json(self, payload: dict, status: HTTPStatus = HTTPStatus.OK) -> None:
@@ -185,6 +151,9 @@ class StudyHandler(BaseHTTPRequestHandler):
         if path == "/":
             self._text_file(STATIC_DIR / "index.html", "text/html; charset=utf-8")
             return
+        if path == "/calendar":
+            self._text_file(STATIC_DIR / "calendar.html", "text/html; charset=utf-8")
+            return
         if path == "/apps":
             self._redirect("/apps/")
             return
@@ -203,11 +172,17 @@ class StudyHandler(BaseHTTPRequestHandler):
         if path == "/assets/app.js":
             self._text_file(STATIC_DIR / "app.js", "application/javascript; charset=utf-8")
             return
+        if path == "/assets/calendar.js":
+            self._text_file(STATIC_DIR / "calendar.js", "application/javascript; charset=utf-8")
+            return
         if path == "/assets/admin.js":
             self._text_file(STATIC_DIR / "admin.js", "application/javascript; charset=utf-8")
             return
         if path == "/api/health":
             self._json({"status": "ok"})
+            return
+        if path == "/api/study/status":
+            self._handle_study_status()
             return
         if path == "/api/admin/status":
             self._handle_admin_status()
@@ -236,6 +211,21 @@ class StudyHandler(BaseHTTPRequestHandler):
         if parsed.path == "/api/index":
             self._handle_index()
             return
+        if parsed.path == "/api/study/init":
+            self._handle_study_init()
+            return
+        if parsed.path == "/api/study/plan":
+            self._handle_study_plan()
+            return
+        if parsed.path == "/api/study/export-ics":
+            self._handle_study_export_ics()
+            return
+        if parsed.path == "/api/study/report":
+            self._handle_study_report()
+            return
+        if parsed.path == "/api/study/load-demo":
+            self._handle_study_load_demo()
+            return
         if parsed.path == "/api/admin/semantic-index":
             self._handle_admin_semantic_index()
             return
@@ -246,107 +236,7 @@ class StudyHandler(BaseHTTPRequestHandler):
             self.send_error(HTTPStatus.NOT_FOUND, "not found")
             return
 
-        raw_size = self.headers.get("Content-Length", "0")
-        try:
-            content_length = int(raw_size)
-        except ValueError:
-            self._json({"error": "invalid content-length"}, status=HTTPStatus.BAD_REQUEST)
-            return
-        if content_length <= 0 or content_length > 2_000_000:
-            self._json({"error": "invalid request body size"}, status=HTTPStatus.BAD_REQUEST)
-            return
-
-        try:
-            body = self.rfile.read(content_length)
-            payload = json.loads(body.decode("utf-8"))
-        except Exception:
-            self._json({"error": "invalid json body"}, status=HTTPStatus.BAD_REQUEST)
-            return
-
-        question = str(payload.get("question", "")).strip()
-        materia_raw = payload.get("materia")
-        materia = str(materia_raw).strip() if materia_raw else None
-        engine = str(payload.get("engine", "gemini")).strip().lower()
-        requested_model = str(payload.get("model", "")).strip()
-        timeout_sec = int(payload.get("timeout_sec", self.config.timeout_sec))
-        top_k = int(payload.get("top_k", self.config.top_k))
-        if not question:
-            self._json({"error": "question is required"}, status=HTTPStatus.BAD_REQUEST)
-            return
-        top_k = max(1, min(top_k, 15))
-        model = _resolve_model(engine, requested_model, self.config)
-
-        hits = search_chunks(
-            db_path=self.config.db_path,
-            query=question,
-            materia=materia,
-            limit=top_k,
-        )
-        hits = rank_hits(question, hits)
-        if not hits:
-            self._json(
-                {"error": "no relevant context found. index the materia or adjust the query"},
-                status=HTTPStatus.NOT_FOUND,
-            )
-            return
-
-        sources = [
-            {
-                "id": f"S{i}",
-                "file": str(Path(hit.path).name),
-                "path": hit.path,
-                "chunk": hit.chunk_idx,
-                "score": hit.score,
-                "excerpt": hit.text[:600],
-            }
-            for i, hit in enumerate(hits, start=1)
-        ]
-
-        context_block = _build_context(hits)
-        try:
-            if engine == "ollama":
-                llm = generate_answer(
-                    host=self.config.ollama_host,
-                    model=model,
-                    user_question=question,
-                    context_block=context_block,
-                    timeout_sec=timeout_sec,
-                )
-            elif engine == "openai":
-                llm = generate_openai_answer(
-                    api_key=self.config.openai_api_key,
-                    model=model,
-                    user_question=question,
-                    context_block=context_block,
-                    timeout_sec=timeout_sec,
-                    base_url=self.config.openai_base_url,
-                )
-            elif engine == "gemini":
-                llm = generate_gemini_answer(
-                    api_key=self.config.gemini_api_key,
-                    model=model,
-                    user_question=question,
-                    context_block=context_block,
-                    timeout_sec=timeout_sec,
-                    base_url=self.config.gemini_base_url,
-                )
-            else:
-                self._json({"error": f"engine not supported: {engine}"}, status=HTTPStatus.BAD_REQUEST)
-                return
-        except (OllamaError, CloudLLMError) as exc:
-            self._json({"error": str(exc)}, status=HTTPStatus.SERVICE_UNAVAILABLE)
-            return
-
-        self._json(
-            {
-                "engine": engine,
-                "answer": llm.content,
-                "model": llm.model,
-                "materia": materia,
-                "sources": sources,
-            }
-        )
-
+        self._handle_answer()
     def _handle_index(self) -> None:
         raw_size = self.headers.get("Content-Length", "0")
         try:
@@ -421,34 +311,6 @@ class StudyHandler(BaseHTTPRequestHandler):
 
         self._json({"results": summaries})
 
-    def _handle_admin_status(self) -> None:
-        try:
-            text_stats = fts_stats(self.config.db_path)
-            text_error = None
-        except Exception as exc:
-            text_stats = {"documents": 0, "chunks": 0, "materias": 0}
-            text_error = str(exc)
-
-        try:
-            sem_stats = semantic_stats(self.config.semantic_db_path)
-            semantic_error = None
-        except Exception as exc:
-            sem_stats = {"documents": 0, "fragments": 0, "embeddings": 0, "areas": 0}
-            semantic_error = str(exc)
-
-        self._json(
-            {
-                "root_path": str(self.config.root_path),
-                "db_path": str(self.config.db_path),
-                "semantic_db_path": str(self.config.semantic_db_path),
-                "semantic_model": self.config.semantic_model,
-                "fts": text_stats,
-                "fts_error": text_error,
-                "semantic": sem_stats,
-                "semantic_error": semantic_error,
-            }
-        )
-
     def _read_json_body(self, max_size: int = 500_000) -> tuple[dict | None, str | None]:
         raw_size = self.headers.get("Content-Length", "0")
         try:
@@ -466,100 +328,6 @@ class StudyHandler(BaseHTTPRequestHandler):
             return None, "json body must be an object"
         return payload, None
 
-    def _semantic_embedder(self, allow_model_download: bool = False) -> SentenceTransformerEmbedder:
-        return SentenceTransformerEmbedder(
-            self.config.semantic_model,
-            local_files_only=not allow_model_download,
-        )
-
-    def _handle_admin_semantic_index(self) -> None:
-        payload, error = self._read_json_body()
-        if error:
-            self._json({"error": error}, status=HTTPStatus.BAD_REQUEST)
-            return
-        assert payload is not None
-        materia = str(payload.get("materia") or "Ind Extractivas").strip()
-        limit_files = int(payload.get("limit_files") or 10)
-        limit_files = max(1, min(limit_files, 50))
-        allow_download = bool(payload.get("allow_model_download", False))
-
-        try:
-            embedder = self._semantic_embedder(allow_download)
-            stats = index_semantic_pilot(
-                db_path=self.config.semantic_db_path,
-                root=self.config.root_path,
-                area=materia,
-                embedder=embedder,
-                limit_files=limit_files,
-            )
-        except Exception as exc:
-            self._json({"error": str(exc)}, status=HTTPStatus.SERVICE_UNAVAILABLE)
-            return
-
-        self._json(
-            {
-                "materia": materia,
-                "stats": {
-                    "scanned": stats.scanned,
-                    "updated": stats.updated,
-                    "skipped_unchanged": stats.skipped_unchanged,
-                    "fragments": stats.fragments,
-                    "embeddings_created": stats.embeddings_created,
-                    "embeddings_reused": stats.embeddings_reused,
-                    "warnings": stats.warnings,
-                },
-            }
-        )
-
-    def _handle_admin_semantic_search(self) -> None:
-        payload, error = self._read_json_body()
-        if error:
-            self._json({"error": error}, status=HTTPStatus.BAD_REQUEST)
-            return
-        assert payload is not None
-        query = str(payload.get("query") or "").strip()
-        materia_raw = payload.get("materia")
-        materia = str(materia_raw).strip() if materia_raw else None
-        top_k = int(payload.get("top_k") or 10)
-        top_k = max(1, min(top_k, 25))
-        if not query:
-            self._json({"error": "query is required"}, status=HTTPStatus.BAD_REQUEST)
-            return
-
-        try:
-            embedder = self._semantic_embedder(False)
-            hits = search_semantic(
-                db_path=self.config.semantic_db_path,
-                query=query,
-                embedder=embedder,
-                area=materia,
-                limit=top_k,
-            )
-        except Exception as exc:
-            self._json({"error": str(exc)}, status=HTTPStatus.SERVICE_UNAVAILABLE)
-            return
-
-        self._json(
-            {
-                "query": query,
-                "results": [
-                    {
-                        "score": hit.score,
-                        "file": Path(hit.path).name,
-                        "path": hit.path,
-                        "title": hit.title,
-                        "document_type": hit.document_type,
-                        "page_start": hit.page_start,
-                        "page_end": hit.page_end,
-                        "chunk_index": hit.chunk_index,
-                        "excerpt": hit.text[:700],
-                    }
-                    for hit in hits
-                ],
-            }
-        )
-
-
 def run_server(
     host: str,
     port: int,
@@ -567,6 +335,8 @@ def run_server(
     db_path: Path,
     semantic_db_path: Path,
     semantic_model: str,
+    study_dates_path: Path,
+    study_state_path: Path,
     ollama_host: str,
     openai_api_key: str,
     gemini_api_key: str,
@@ -586,6 +356,8 @@ def run_server(
         db_path=db_path.expanduser(),
         semantic_db_path=semantic_db_path.expanduser(),
         semantic_model=semantic_model,
+        study_dates_path=study_dates_path.expanduser(),
+        study_state_path=study_state_path.expanduser(),
         ollama_host=ollama_host,
         openai_api_key=resolved_openai_key,
         gemini_api_key=resolved_gemini_key,
@@ -604,6 +376,8 @@ def run_server(
     print(f"DB: {config.db_path}")
     print(f"Semantic DB: {config.semantic_db_path}")
     print(f"Semantic model: {config.semantic_model}")
+    print(f"Study dates: {config.study_dates_path}")
+    print(f"Study state: {config.study_state_path}")
     print(f"Ollama model (default): {config.default_ollama_model}")
     print(f"OpenAI model (default): {config.default_openai_model}")
     print(f"Gemini model (default): {config.default_gemini_model}")
@@ -629,6 +403,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--db", type=Path, default=DEFAULT_DB_PATH, help="sqlite db path")
     parser.add_argument("--semantic-db", type=Path, default=DEFAULT_SEMANTIC_DB_PATH, help="semantic sqlite db path")
     parser.add_argument("--semantic-model", default=DEFAULT_EMBEDDING_MODEL, help="semantic embedding model")
+    parser.add_argument("--study-dates", type=Path, default=DEFAULT_STUDY_DATES_PATH, help="study dates json path")
+    parser.add_argument("--study-state", type=Path, default=DEFAULT_STUDY_STATE_PATH, help="study state json path")
     parser.add_argument("--ollama-host", default="http://127.0.0.1:11434", help="ollama host")
     parser.add_argument("--openai-api-key", default=os.getenv("OPENAI_API_KEY", ""), help="OpenAI API key")
     parser.add_argument("--gemini-api-key", default=os.getenv("GEMINI_API_KEY", ""), help="Gemini API key")
@@ -654,6 +430,8 @@ def main() -> int:
         db_path=args.db,
         semantic_db_path=args.semantic_db,
         semantic_model=args.semantic_model,
+        study_dates_path=args.study_dates,
+        study_state_path=args.study_state,
         ollama_host=args.ollama_host,
         openai_api_key=args.openai_api_key,
         gemini_api_key=args.gemini_api_key,

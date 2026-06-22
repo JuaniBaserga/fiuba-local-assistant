@@ -49,7 +49,7 @@ No se prioriza personalización compleja antes de medir la calidad de recuperaci
 | Admin de indexación | Experimental | `/admin` muestra estado FTS/semántico y permite buscar vecinos |
 | Diagnóstico OCR | Técnico | Disponible por CLI |
 | Actividades de práctica | Funciona | Hub único con Extractivas y Automatización |
-| Planner/calendario | Pausado | Implementado; validación real pendiente |
+| Planner/calendario | Demo UI | Planificador local, export ICS y pantalla `/calendar` |
 
 ## Prioridades
 
@@ -103,6 +103,7 @@ python3 -m http.server 8000 --directory activities
 Abrir:
 
 - App principal: `http://127.0.0.1:8787`
+- Calendario: `http://127.0.0.1:8787/calendar`
 - Admin: `http://127.0.0.1:8787/admin`
 - Actividades: `http://127.0.0.1:8000`
 
@@ -121,6 +122,8 @@ Tests:
   `semantic stats`.
 - Se agregó `/admin` para revisar rutas de índices, métricas FTS/semánticas,
   reindexar el piloto semántico y probar vecinos con fuente, página y extracto.
+- Se agregó `/calendar` como pantalla de organización con plan, reporte e
+  exportación ICS.
 - Se migraron las prácticas de Extractivas y Automatización al repositorio.
 - Se creó una página única para cambiar entre ambas actividades.
 - El asistente principal se incorporó como pantalla inicial de esa página, para

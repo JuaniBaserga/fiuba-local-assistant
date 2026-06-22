@@ -83,6 +83,57 @@ def test_build_study_plan_respects_daily_limit_when_feasible():
     assert all(minutes <= 120 for minutes in by_day.values())
 
 
+def test_build_study_plan_never_exceeds_daily_limit_when_capacity_is_insufficient():
+    start = date(2026, 4, 20)
+    events = [
+        StudyEvent(
+            materia="Mecanismos",
+            event_type="parcial",
+            title="Parcial Meca",
+            date=date(2026, 4, 26),
+        )
+    ]
+    options = PlanOptions(
+        from_date=start,
+        weekly_hours=30.0,
+        weeks=1,
+        session_minutes=60,
+        max_daily_hours=1.0,
+        day_start_hour=18,
+    )
+
+    sessions = build_study_plan(events, options)
+    by_day: dict[date, int] = {}
+    for session in sessions:
+        by_day[session.start.date()] = by_day.get(session.start.date(), 0) + session.duration_minutes
+    assert all(minutes <= 60 for minutes in by_day.values())
+
+
+def test_build_study_plan_never_schedules_after_target_date():
+    start = date(2026, 4, 20)
+    target = date(2026, 4, 20)
+    events = [
+        StudyEvent(
+            materia="Mecanismos",
+            event_type="parcial",
+            title="Parcial Meca",
+            date=target,
+        )
+    ]
+    options = PlanOptions(
+        from_date=start,
+        weekly_hours=10.0,
+        weeks=1,
+        session_minutes=60,
+        max_daily_hours=2.0,
+        day_start_hour=18,
+    )
+
+    sessions = build_study_plan(events, options)
+    assert sessions
+    assert all(session.start.date() <= target for session in sessions)
+
+
 def test_build_study_plan_assigns_focus_topic_and_reason():
     start = date(2026, 4, 20)
     events = [

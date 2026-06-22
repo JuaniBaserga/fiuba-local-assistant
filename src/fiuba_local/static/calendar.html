@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calendario · Asistente FIUBA</title>
+    <link rel="stylesheet" href="/assets/style.css" />
+  </head>
+  <body>
+    <main class="calendar-shell">
+      <header class="calendar-topbar">
+        <div>
+          <p class="eyebrow">Organización</p>
+          <h1>Calendario</h1>
+          <p class="subtitle">Planificación, exportación ICS y seguimiento de sesiones.</p>
+        </div>
+        <nav class="top-nav">
+          <a href="/">Asistente</a>
+          <a href="/calendar" aria-current="page">Calendario</a>
+          <a href="/apps/">Actividades</a>
+        </nav>
+      </header>
+
+      <section class="calendar-grid">
+        <article class="calendar-card">
+          <div class="panel-head">
+            <h2>Estado</h2>
+            <button id="refresh-study-btn" type="button" class="secondary small">Actualizar</button>
+          </div>
+          <dl class="status-grid">
+            <dt>Fechas</dt>
+            <dd id="study-dates-path">-</dd>
+            <dt>Estado</dt>
+            <dd id="study-state-path">-</dd>
+            <dt>Eventos</dt>
+            <dd id="study-events-count">0</dd>
+            <dt>Sesiones</dt>
+            <dd id="study-sessions-count">0</dd>
+          </dl>
+          <div class="metric-grid">
+            <div>
+              <span>Completadas</span>
+              <strong id="study-completed-count">0</strong>
+            </div>
+            <div>
+              <span>Semana actual</span>
+              <strong id="study-week-count">0</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="calendar-card">
+          <div class="panel-head">
+            <h2>Acciones</h2>
+            <span id="calendar-status-pill" class="status-pill">Listo</span>
+          </div>
+          <div class="calendar-actions">
+            <button id="study-init-btn" type="button">Inicializar</button>
+            <button id="study-plan-btn" type="button">Generar plan</button>
+            <button id="study-report-btn" type="button" class="secondary">Reporte</button>
+            <button id="study-ics-btn" type="button" class="secondary">Exportar ICS</button>
+          </div>
+          <pre id="study-action-result" class="index-result hidden"></pre>
+        </article>
+      </section>
+
+      <section class="calendar-card">
+        <div class="panel-head">
+          <h2>Sesiones próximas</h2>
+          <span class="subtitle small" id="study-summary">-</span>
+        </div>
+        <ol id="study-sessions" class="study-session-list"></ol>
+      </section>
+    </main>
+    <script src="/assets/calendar.js"></script>
+  </body>
+</html>

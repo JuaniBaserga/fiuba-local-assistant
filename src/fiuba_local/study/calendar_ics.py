@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from .types import StudySession
 
@@ -18,7 +18,7 @@ def render_ics(
     calendar_name: str = "FIUBA Study Plan",
     prod_id: str = "-//fiuba-local-assistant//study//ES",
 ) -> str:
-    now_stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    now_stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     lines: list[str] = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",

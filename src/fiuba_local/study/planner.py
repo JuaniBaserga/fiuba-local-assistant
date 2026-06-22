@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 from math import floor
 
+from .focus import focus_reason, focus_topic, planning_phase
 from .types import StudyEvent, StudySession
 
 
@@ -64,74 +65,20 @@ def _next_event_per_materia(events: list[StudyEvent], as_of: date) -> dict[str, 
     return out
 
 
-def _pick_day(day_load: list[int], session_minutes: int, max_daily_minutes: int) -> int:
+def _pick_day(
+    day_load: list[int],
+    session_minutes: int,
+    max_daily_minutes: int,
+    eligible_days: range,
+) -> int | None:
     candidates = [
         day_idx
-        for day_idx, current in enumerate(day_load)
-        if current + session_minutes <= max_daily_minutes
+        for day_idx in eligible_days
+        if day_load[day_idx] + session_minutes <= max_daily_minutes
     ]
     if candidates:
         return min(candidates, key=lambda idx: (day_load[idx], idx))
-    return min(range(len(day_load)), key=lambda idx: (day_load[idx], idx))
-
-
-def _planning_phase(event_type: str, days_left: int) -> str:
-    event_kind = event_type.strip().lower()
-    if event_kind == "entrega":
-        if days_left <= 4:
-            return "cierre"
-        if days_left <= 14:
-            return "desarrollo"
-        return "arranque"
-
-    if days_left <= 7:
-        return "cierre"
-    if days_left <= 21:
-        return "consolidacion"
-    return "fundamentos"
-
-
-def _default_focus_topic(event_type: str, phase: str) -> str:
-    event_kind = event_type.strip().lower()
-    if event_kind == "entrega":
-        if phase == "arranque":
-            return "descomponer enunciado y definir plan de trabajo"
-        if phase == "desarrollo":
-            return "resolver bloque principal del trabajo practico"
-        return "cierre, validacion y checklist de entrega"
-
-    if phase == "fundamentos":
-        return "fundamentos y mapa de conceptos"
-    if phase == "consolidacion":
-        return "ejercicios tipo parcial con correccion guiada"
-    return "simulacro y repaso activo de errores"
-
-
-def _focus_topic(event: StudyEvent, sequence_for_materia: int, phase: str) -> str:
-    if event.topics:
-        topic = event.topics[sequence_for_materia % len(event.topics)]
-        if phase == "cierre":
-            return f"Repaso activo: {topic}"
-        return topic
-    return _default_focus_topic(event.event_type, phase)
-
-
-def _focus_reason(event: StudyEvent, days_left: int, phase: str, focus_topic: str) -> str:
-    day_label = "dia" if days_left == 1 else "dias"
-    if phase == "fundamentos":
-        phase_reason = "fase de base conceptual"
-    elif phase == "consolidacion":
-        phase_reason = "fase de consolidacion con practica"
-    elif phase == "arranque":
-        phase_reason = "fase de arranque para no acumular deuda"
-    elif phase == "desarrollo":
-        phase_reason = "fase de desarrollo de contenido principal"
-    else:
-        phase_reason = "fase de cierre previa al objetivo"
-    return (
-        f"Faltan {days_left} {day_label} para {event.event_type} '{event.title}'; "
-        f"{phase_reason}, foco en: {focus_topic}."
-    )
+    return None
 
 
 def build_study_plan(events: list[StudyEvent], options: PlanOptions) -> list[StudySession]:
@@ -143,6 +90,8 @@ def build_study_plan(events: list[StudyEvent], options: PlanOptions) -> list[Stu
         raise ValueError("`session_minutes` debe ser > 0.")
     if options.max_daily_hours <= 0:
         raise ValueError("`max_daily_hours` debe ser > 0.")
+    if options.session_minutes > int(round(options.max_daily_hours * 60)):
+        raise ValueError("`session_minutes` no puede superar el maximo diario.")
     if options.day_start_hour < 0 or options.day_start_hour > 23:
         raise ValueError("`day_start_hour` debe estar entre 0 y 23.")
 
@@ -179,18 +128,28 @@ def build_study_plan(events: list[StudyEvent], options: PlanOptions) -> list[Stu
 
             while remaining > 0:
                 duration = min(options.session_minutes, remaining)
-                day_idx = _pick_day(day_load, duration, max_daily_minutes)
+                last_day_idx = min(6, (target.date - week_start).days)
+                if last_day_idx < 0:
+                    break
+                day_idx = _pick_day(
+                    day_load,
+                    duration,
+                    max_daily_minutes,
+                    range(last_day_idx + 1),
+                )
+                if day_idx is None:
+                    break
                 session_date = week_start + timedelta(days=day_idx)
-                if session_date > week_end:
+                if session_date > week_end or session_date > target.date:
                     break
                 start_minutes = (options.day_start_hour * 60) + day_load[day_idx]
                 start_dt = datetime.combine(session_date, time.min) + timedelta(minutes=start_minutes)
                 end_dt = start_dt + timedelta(minutes=duration)
                 days_left = max((target.date - session_date).days, 0)
-                phase = _planning_phase(target.event_type, days_left)
+                phase = planning_phase(target.event_type, days_left)
                 materia_seq = sessions_by_materia.get(materia, 0)
-                focus_topic = _focus_topic(target, materia_seq, phase)
-                focus_reason = _focus_reason(target, days_left, phase, focus_topic)
+                topic = focus_topic(target, materia_seq, phase)
+                reason = focus_reason(target, days_left, phase, topic)
 
                 session_id = f"{session_date.isoformat()}-{materia.lower().replace(' ', '-')}-{sequence}"
                 sequence += 1
@@ -205,8 +164,8 @@ def build_study_plan(events: list[StudyEvent], options: PlanOptions) -> list[Stu
                         target_date=target.date,
                         target_event_type=target.event_type,
                         target_title=target.title,
-                        focus_topic=focus_topic,
-                        focus_reason=focus_reason,
+                        focus_topic=topic,
+                        focus_reason=reason,
                     )
                 )
                 sessions_by_materia[materia] = materia_seq + 1
