@@ -1,6 +1,12 @@
-# PRDs futuros
+# Backlog de capacidades futuras
 
-Este documento guarda ideas valiosas que no son foco del producto actual. El PRD principal vive en `docs/PRD.md` y se concentra en respuestas con fuentes.
+> Estado: `Backlog` · Iniciativa: `I-06` · Ultima actualizacion: `2026-06-22`
+>
+> Estas entradas son oportunidades, no iniciativas activas ni compromisos de entrega.
+
+Este documento guarda ideas valiosas que no son foco del producto actual. El
+PRD principal vive en `docs/prds/01_respuestas_con_fuentes/PRD.md` y se
+concentra en respuestas con fuentes.
 
 ## Criterio de entrada
 Una iniciativa queda aca cuando:

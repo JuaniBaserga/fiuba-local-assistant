@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>V/F Automatización</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Práctica V/F</p>
+          <h1>Automatización Industrial</h1>
+        </div>
+        <div class="score" aria-live="polite">
+          <span id="scoreText">0 / 0</span>
+          <small id="streakText">racha 0</small>
+        </div>
+      </header>
+
+      <section class="controls" aria-label="Filtros y modo">
+        <div class="tabs" id="categoryTabs">
+          <button class="tab active" data-category="all" type="button">Todo</button>
+          <button class="tab" data-category="motores" type="button">Motores</button>
+          <button class="tab" data-category="plc" type="button">PLC</button>
+          <button class="tab" data-category="sensores" type="button">Sensores</button>
+          <button class="tab" data-category="encoders" type="button">Encoders</button>
+          <button class="tab" data-category="neumatica" type="button">Neumática</button>
+        </div>
+
+        <div class="mode-row">
+          <label class="toggle">
+            <input id="shuffleToggle" type="checkbox" checked />
+            <span>Aleatorio</span>
+          </label>
+          <button id="resetBtn" class="ghost-btn" type="button">Reiniciar</button>
+        </div>
+      </section>
+
+      <section class="question-panel" aria-live="polite">
+        <div class="meta-row">
+          <span id="categoryPill" class="pill">Todo</span>
+          <span id="progressText">Pregunta 1 de 1</span>
+        </div>
+
+        <p id="questionText" class="question-text"></p>
+
+        <div class="answer-row">
+          <button id="trueBtn" class="answer-btn true" type="button">Verdadero</button>
+          <button id="falseBtn" class="answer-btn false" type="button">Falso</button>
+        </div>
+
+        <div id="feedback" class="feedback hidden">
+          <strong id="feedbackTitle"></strong>
+          <p id="feedbackText"></p>
+          <small id="sourceText"></small>
+        </div>
+
+        <div class="nav-row">
+          <button id="prevBtn" class="ghost-btn" type="button">Anterior</button>
+          <button id="nextBtn" class="primary-btn" type="button">Siguiente</button>
+        </div>
+      </section>
+
+      <section class="stats-grid" aria-label="Resumen">
+        <div>
+          <strong id="availableCount">0</strong>
+          <span>preguntas del filtro</span>
+        </div>
+        <div>
+          <strong id="answeredCount">0</strong>
+          <span>respondidas</span>
+        </div>
+        <div>
+          <strong id="accuracyText">0%</strong>
+          <span>acierto</span>
+        </div>
+      </section>
+    </main>
+
+    <script src="./questions.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

@@ -1,5 +1,7 @@
 # FIUBA Study UI - DESIGN.md
 
+> Estado: `Referencia vigente` · Ultima revision documental: `2026-06-22`
+
 Reference style:
 - Inspired by the Notion profile from `VoltAgent/awesome-design-md`.
 - Source reference: `https://getdesign.md/notion/design-md`.

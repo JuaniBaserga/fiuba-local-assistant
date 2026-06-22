@@ -12,6 +12,7 @@ dependencies = []
 
 [project.optional-dependencies]
 pdf = ["pypdf>=4.0"]
+semantic = ["sentence-transformers>=3.0", "pypdf>=4.0"]
 dev = ["pytest>=8.0", "pypdf>=4.0"]
 
 [project.scripts]

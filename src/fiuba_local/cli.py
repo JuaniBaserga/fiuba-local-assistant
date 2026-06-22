@@ -7,12 +7,19 @@ import sys
 from datetime import date, datetime
 from pathlib import Path
 
-from .config import DEFAULT_DB_PATH, DEFAULT_FACULTAD_ROOT
+from .config import DEFAULT_DB_PATH, DEFAULT_FACULTAD_ROOT, DEFAULT_SEMANTIC_DB_PATH
 from .envfile import load_env_file
 from .indexer import index_materia
 from .ocr_scan import scan_ocr_candidates
 from .ollama_client import OllamaError, generate_answer
 from .search import rank_hits, search_chunks, stats as get_stats
+from .semantic import (
+    DEFAULT_EMBEDDING_MODEL,
+    SentenceTransformerEmbedder,
+    index_semantic_pilot,
+    search_semantic,
+    semantic_stats,
+)
 from .study import (
     DEFAULT_STUDY_DATES_PATH,
     DEFAULT_STUDY_STATE_PATH,
@@ -98,6 +105,17 @@ def build_parser() -> argparse.ArgumentParser:
     p_serve.add_argument("--model", default="qwen2.5:3b-instruct", help="Modelo por defecto de Ollama.")
     p_serve.add_argument("--top-k", type=_positive_int, default=6, help="Top-k por defecto.")
     p_serve.add_argument("--timeout-sec", type=_positive_int, default=300, help="Timeout de consulta a Ollama.")
+    p_serve.add_argument(
+        "--semantic-db",
+        type=Path,
+        default=DEFAULT_SEMANTIC_DB_PATH,
+        help=f"Ruta del indice semantico experimental (default: {DEFAULT_SEMANTIC_DB_PATH})",
+    )
+    p_serve.add_argument(
+        "--semantic-model",
+        default=DEFAULT_EMBEDDING_MODEL,
+        help="Modelo local de embeddings para /admin.",
+    )
     p_serve.add_argument(
         "--openai-api-key",
         default=os.getenv("OPENAI_API_KEY", ""),
@@ -257,6 +275,58 @@ def build_parser() -> argparse.ArgumentParser:
     p_ocr.add_argument("--only-needs-ocr", action="store_true", help="Mostrar solo candidatos a OCR.")
     p_ocr.add_argument("--limit", type=int, default=0, help="Limite de filas mostradas (0 = sin limite).")
 
+    p_semantic = sub.add_parser("semantic", help="Indice experimental de busqueda semantica.")
+    semantic_sub = p_semantic.add_subparsers(dest="semantic_cmd", required=True)
+
+    p_semantic_index = semantic_sub.add_parser("index", help="Indexa el corpus piloto semantico.")
+    p_semantic_index.add_argument("--materia", default="Ind Extractivas", help="Materia/carpeta piloto.")
+    p_semantic_index.add_argument(
+        "--semantic-db",
+        type=Path,
+        default=DEFAULT_SEMANTIC_DB_PATH,
+        help=f"Ruta del indice semantico experimental (default: {DEFAULT_SEMANTIC_DB_PATH})",
+    )
+    p_semantic_index.add_argument(
+        "--model",
+        default=DEFAULT_EMBEDDING_MODEL,
+        help="Modelo local de embeddings compatible con sentence-transformers.",
+    )
+    p_semantic_index.add_argument("--limit-files", type=_positive_int, default=10, help="Cantidad maxima de PDFs piloto.")
+    p_semantic_index.add_argument(
+        "--allow-model-download",
+        action="store_true",
+        help="Permite que sentence-transformers descargue el modelo si no esta cacheado.",
+    )
+
+    p_semantic_search = semantic_sub.add_parser("search", help="Busca vecinos semanticos en el indice experimental.")
+    p_semantic_search.add_argument("query", help="Consulta semantica.")
+    p_semantic_search.add_argument("--materia", help="Filtra por materia/area.")
+    p_semantic_search.add_argument("--top-k", type=_positive_int, default=10, help="Cantidad de vecinos.")
+    p_semantic_search.add_argument(
+        "--semantic-db",
+        type=Path,
+        default=DEFAULT_SEMANTIC_DB_PATH,
+        help=f"Ruta del indice semantico experimental (default: {DEFAULT_SEMANTIC_DB_PATH})",
+    )
+    p_semantic_search.add_argument(
+        "--model",
+        default=DEFAULT_EMBEDDING_MODEL,
+        help="Modelo local de embeddings compatible con sentence-transformers.",
+    )
+    p_semantic_search.add_argument(
+        "--allow-model-download",
+        action="store_true",
+        help="Permite que sentence-transformers descargue el modelo si no esta cacheado.",
+    )
+
+    p_semantic_stats = semantic_sub.add_parser("stats", help="Muestra estado del indice semantico.")
+    p_semantic_stats.add_argument(
+        "--semantic-db",
+        type=Path,
+        default=DEFAULT_SEMANTIC_DB_PATH,
+        help=f"Ruta del indice semantico experimental (default: {DEFAULT_SEMANTIC_DB_PATH})",
+    )
+
     sub.add_parser("stats", help="Muestra estado del indice.")
     return parser
 
@@ -357,12 +427,90 @@ def run_stats(args: argparse.Namespace) -> int:
     return 0
 
 
+def _build_semantic_embedder(args: argparse.Namespace) -> SentenceTransformerEmbedder:
+    return SentenceTransformerEmbedder(
+        args.model,
+        local_files_only=not bool(getattr(args, "allow_model_download", False)),
+    )
+
+
+def run_semantic_index(args: argparse.Namespace) -> int:
+    try:
+        embedder = _build_semantic_embedder(args)
+        stats = index_semantic_pilot(
+            db_path=args.semantic_db.expanduser(),
+            root=args.root.expanduser(),
+            area=args.materia,
+            embedder=embedder,
+            limit_files=args.limit_files,
+        )
+    except RuntimeError as exc:
+        print(f"Error semantico: {exc}")
+        return 1
+
+    print("Indexacion semantica finalizada")
+    print(f"- DB experimental: {args.semantic_db.expanduser()}")
+    print(f"- Modelo: {args.model}")
+    print(f"- Archivos escaneados: {stats.scanned}")
+    print(f"- Archivos actualizados: {stats.updated}")
+    print(f"- Sin cambios: {stats.skipped_unchanged}")
+    print(f"- Fragmentos nuevos/reindexados: {stats.fragments}")
+    print(f"- Embeddings creados: {stats.embeddings_created}")
+    print(f"- Embeddings reutilizados: {stats.embeddings_reused}")
+    print(f"- Advertencias: {stats.warnings}")
+    return 0
+
+
+def run_semantic_search(args: argparse.Namespace) -> int:
+    try:
+        embedder = _build_semantic_embedder(args)
+        hits = search_semantic(
+            db_path=args.semantic_db.expanduser(),
+            query=args.query,
+            embedder=embedder,
+            area=args.materia,
+            limit=args.top_k,
+        )
+    except RuntimeError as exc:
+        print(f"Error semantico: {exc}")
+        return 1
+
+    if not hits:
+        print("Sin resultados semanticos. Ejecuta `semantic index` primero.")
+        return 0
+
+    print(f"Vecinos semanticos para: {args.query!r}")
+    if args.materia:
+        print(f"Filtro materia: {args.materia}")
+    for i, hit in enumerate(hits, start=1):
+        preview = hit.text.replace("\n", " ")
+        if len(preview) > 260:
+            preview = preview[:260] + "..."
+        page_label = str(hit.page_start) if hit.page_start == hit.page_end else f"{hit.page_start}-{hit.page_end}"
+        print(f"\n[{i}] {Path(hit.path).name} p.{page_label} ({hit.document_type}, score={hit.score:.3f})")
+        print(f"Fuente: {hit.path}")
+        print(preview)
+    return 0
+
+
+def run_semantic_stats(args: argparse.Namespace) -> int:
+    s = semantic_stats(args.semantic_db.expanduser())
+    print("Estado del indice semantico experimental")
+    print(f"- Areas: {s['areas']}")
+    print(f"- Documentos: {s['documents']}")
+    print(f"- Fragmentos: {s['fragments']}")
+    print(f"- Embeddings: {s['embeddings']}")
+    return 0
+
+
 def run_serve(args: argparse.Namespace) -> int:
     run_server(
         host=args.host,
         port=args.port,
         root_path=args.root.expanduser(),
         db_path=args.db.expanduser(),
+        semantic_db_path=args.semantic_db.expanduser(),
+        semantic_model=args.semantic_model,
         ollama_host=args.ollama_host,
         openai_api_key=args.openai_api_key,
         gemini_api_key=args.gemini_api_key,
@@ -812,6 +960,14 @@ def main() -> int:
         raise ValueError(f"Subcomando desconocido: {args.study_cmd}")
     if args.cmd == "ocr-check":
         return run_ocr_check(args)
+    if args.cmd == "semantic":
+        if args.semantic_cmd == "index":
+            return run_semantic_index(args)
+        if args.semantic_cmd == "search":
+            return run_semantic_search(args)
+        if args.semantic_cmd == "stats":
+            return run_semantic_stats(args)
+        raise ValueError(f"Subcomando desconocido: {args.semantic_cmd}")
     if args.cmd == "stats":
         return run_stats(args)
     parser.print_help()

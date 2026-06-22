@@ -15,6 +15,7 @@ def _env_path(name: str, fallback: Path) -> Path:
 DEFAULT_FACULTAD_ROOT = _env_path("FIUBA_ROOT", Path.home() / "dev" / "Facultad")
 DEFAULT_STATE_DIR = _env_path("FIUBA_STATE_DIR", Path.home() / ".fiuba_local")
 DEFAULT_DB_PATH = _env_path("FIUBA_DB_PATH", DEFAULT_STATE_DIR / "index.db")
+DEFAULT_SEMANTIC_DB_PATH = _env_path("FIUBA_SEMANTIC_DB_PATH", DEFAULT_STATE_DIR / "semantic.db")
 
 SUPPORTED_EXTENSIONS = {".txt", ".md", ".pdf"}
 

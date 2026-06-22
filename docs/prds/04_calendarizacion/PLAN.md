@@ -1,7 +1,11 @@
 # Plan de ejecucion - Study Planner + Calendar Sync
 
-> Nota 2026-05-04: este plan queda como iniciativa futura/experimental. El foco
-> actual esta en respuestas con fuentes; ver `docs/PRD.md` y `docs/PRD_FUTURE.md`.
+> Estado: `Pausado` · Iniciativa: `I-04` · Ultima actualizacion: `2026-06-22`
+>
+> Retomar desde Sprint 5 solo si la iniciativa vuelve a priorizarse.
+
+> El foco actual esta en respuestas con fuentes. Este plan conserva el detalle
+> necesario para retomar I-04 si vuelve a priorizarse.
 
 ## Estado actual (2026-04-18)
 Resumen por sprint:
@@ -18,7 +22,8 @@ Evidencia tecnica generada:
 3. Dry-run de Google Calendar ejecutado sin creacion real de eventos.
 
 ## Contexto
-Este plan implementa el alcance definido en `docs/PRD_STUDY_CALENDAR.md` sin bloquear el flujo actual de indexado/busqueda/chat.
+Este plan implementa el alcance definido en [`PRD.md`](PRD.md) sin bloquear el
+flujo actual de indexado/busqueda/chat.
 
 ## Estrategia
 Implementacion incremental con valor visible en cada sprint:

@@ -33,8 +33,39 @@ body {
   gap: 18px;
 }
 
+.admin-shell {
+  width: min(1180px, calc(100vw - 48px));
+  margin: 28px auto;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.nav-link {
+  border: 1px solid #d7d2cb;
+  background: #fff;
+  color: #2f2c29;
+  border-radius: 8px;
+  padding: 9px 13px;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
 .control-panel,
-.chat-panel {
+.chat-panel,
+.admin-panel {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -49,6 +80,57 @@ body {
 
 .chat-panel {
   padding: 22px 22px 18px;
+}
+
+.admin-panel {
+  padding: 18px;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 8px 12px;
+  margin: 0 0 14px;
+}
+
+.status-grid dt {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.status-grid dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.metric-grid div {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--surface-soft);
+}
+
+.metric-grid span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.metric-grid strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.35rem;
+}
+
+.admin-search-options {
+  max-width: 560px;
 }
 
 h1,
@@ -292,6 +374,35 @@ button.small {
   line-height: 1.45;
 }
 
+.semantic-results {
+  margin: 16px 0 0;
+  padding-left: 24px;
+}
+
+.semantic-results li {
+  margin: 0 0 14px;
+  border-bottom: 1px solid var(--line);
+  padding: 0 0 14px;
+}
+
+.semantic-result-title {
+  font-weight: 800;
+  color: #24211f;
+}
+
+.semantic-result-path {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.semantic-results p {
+  margin: 7px 0 0;
+  color: #312d29;
+  line-height: 1.45;
+}
+
 .hidden {
   display: none;
 }
@@ -319,7 +430,26 @@ details summary {
   }
 
   .control-panel,
-  .chat-panel {
+  .chat-panel,
+  .admin-panel {
     border-radius: 14px;
+  }
+
+  .admin-shell {
+    width: calc(100vw - 24px);
+    margin: 12px auto 18px;
+  }
+
+  .admin-header,
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-header {
+    display: grid;
+  }
+
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

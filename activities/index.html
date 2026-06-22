@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FIUBA Assistant · Estudiar</title>
+    <link rel="stylesheet" href="hub.css" />
+  </head>
+  <body>
+    <main class="hub-shell">
+      <aside class="hub-sidebar">
+        <header class="hub-brand">
+          <span class="brand-mark" aria-hidden="true">F</span>
+          <div>
+            <p>FIUBA Assistant</p>
+            <h1>Estudiar</h1>
+          </div>
+        </header>
+
+        <p class="sidebar-label">Elegí una experiencia</p>
+        <nav class="activity-list" aria-label="Experiencias disponibles">
+          <button
+            class="activity-card active"
+            type="button"
+            data-activity="assistant"
+            data-src="http://127.0.0.1:8787/"
+            aria-current="page"
+          >
+            <span class="activity-icon assistant" aria-hidden="true">✦</span>
+            <span>
+              <strong>Preguntar al asistente</strong>
+              <small>Consultá tus apuntes con fuentes</small>
+            </span>
+          </button>
+
+          <button
+            class="activity-card"
+            type="button"
+            data-activity="extractivas"
+            data-src="ind-extractivas-teoricas/"
+          >
+            <span class="activity-icon extractivas" aria-hidden="true">⛏</span>
+            <span>
+              <strong>Industrias Extractivas</strong>
+              <small>Test, fichas y práctica oral</small>
+            </span>
+          </button>
+
+          <button
+            class="activity-card"
+            type="button"
+            data-activity="auto"
+            data-src="auto-verdadero-falso/"
+          >
+            <span class="activity-icon auto" aria-hidden="true">⚙</span>
+            <span>
+              <strong>Automatización</strong>
+              <small>Verdadero o falso por tema</small>
+            </span>
+          </button>
+        </nav>
+
+        <footer class="hub-note">
+          <span class="status-dot" aria-hidden="true"></span>
+          <p>Cada experiencia conserva su estado de forma independiente.</p>
+        </footer>
+      </aside>
+
+      <section class="activity-stage">
+        <header class="mobile-header">
+          <div>
+            <p>FIUBA Assistant</p>
+            <strong id="mobileTitle">Preguntar al asistente</strong>
+          </div>
+          <label>
+            <span class="sr-only">Elegir actividad</span>
+            <select id="activitySelect">
+              <option value="assistant">Asistente</option>
+              <option value="extractivas">Extractivas</option>
+              <option value="auto">Automatización</option>
+            </select>
+          </label>
+        </header>
+
+        <iframe
+          id="activityFrame"
+          src="http://127.0.0.1:8787/"
+          title="FIUBA Assistant"
+        ></iframe>
+      </section>
+    </main>
+
+    <script src="hub.js"></script>
+  </body>
+</html>

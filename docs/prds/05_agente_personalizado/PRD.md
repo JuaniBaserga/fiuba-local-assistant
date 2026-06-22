@@ -4,7 +4,10 @@
 
 - Version: `0.1`
 - Fecha: `2026-05-03`
-- Estado: `Borrador inicial`
+- Ultima actualizacion: `2026-06-22`
+- Madurez: `Borrador`
+- Estado de iniciativa: `Backlog`
+- Iniciativa: `I-05`
 - Owner: `fiuba-local-assistant`
 
 ## 1. Resumen

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FIUBA Assistant Admin</title>
+    <link rel="stylesheet" href="/assets/style.css" />
+  </head>
+  <body>
+    <main class="admin-shell">
+      <header class="admin-header">
+        <div>
+          <h1>Admin</h1>
+          <p class="subtitle">Estado de indexacion, rutas activas y busqueda semantica experimental.</p>
+        </div>
+        <a class="nav-link" href="/">Chat</a>
+      </header>
+
+      <section class="admin-grid">
+        <article class="admin-panel">
+          <div class="panel-head">
+            <h2>Estado</h2>
+            <button id="refresh-status-btn" type="button" class="secondary small">Actualizar</button>
+          </div>
+          <dl class="status-grid">
+            <dt>Root</dt>
+            <dd id="root-path">-</dd>
+            <dt>FTS DB</dt>
+            <dd id="db-path">-</dd>
+            <dt>Semantic DB</dt>
+            <dd id="semantic-db-path">-</dd>
+            <dt>Modelo</dt>
+            <dd id="semantic-model">-</dd>
+          </dl>
+          <div class="metric-grid">
+            <div>
+              <span>FTS docs</span>
+              <strong id="fts-docs">0</strong>
+            </div>
+            <div>
+              <span>FTS chunks</span>
+              <strong id="fts-chunks">0</strong>
+            </div>
+            <div>
+              <span>Semantic docs</span>
+              <strong id="semantic-docs">0</strong>
+            </div>
+            <div>
+              <span>Embeddings</span>
+              <strong id="semantic-embeddings">0</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="admin-panel">
+          <h2>Indexar Semantico</h2>
+          <div class="inline-grid">
+            <div>
+              <label for="semantic-materia">Materia</label>
+              <input id="semantic-materia" value="Ind Extractivas" />
+            </div>
+            <div>
+              <label for="semantic-limit">Archivos</label>
+              <input id="semantic-limit" type="number" min="1" max="50" value="10" />
+            </div>
+          </div>
+          <div class="actions">
+            <button id="semantic-index-btn" type="button">Indexar</button>
+          </div>
+          <pre id="semantic-index-result" class="index-result hidden"></pre>
+        </article>
+      </section>
+
+      <section class="admin-panel">
+        <div class="panel-head">
+          <h2>Busqueda Semantica</h2>
+          <span id="admin-status-pill" class="status-pill">Listo</span>
+        </div>
+        <label for="semantic-query">Consulta</label>
+        <textarea id="semantic-query" rows="3">separacion por flotacion con burbujas</textarea>
+        <div class="inline-grid admin-search-options">
+          <div>
+            <label for="semantic-filter">Filtro materia</label>
+            <input id="semantic-filter" placeholder="Opcional" />
+          </div>
+          <div>
+            <label for="semantic-topk">Vecinos</label>
+            <input id="semantic-topk" type="number" min="1" max="25" value="10" />
+          </div>
+        </div>
+        <div class="actions">
+          <button id="semantic-search-btn" type="button">Buscar</button>
+        </div>
+        <ol id="semantic-results" class="semantic-results"></ol>
+      </section>
+    </main>
+    <script src="/assets/admin.js"></script>
+  </body>
+</html>

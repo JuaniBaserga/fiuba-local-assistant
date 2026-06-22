@@ -1,5 +1,9 @@
 # Set de Evaluacion (Plantilla)
 
+> Estado: `Activo` para I-01 · Ultima actualizacion: `2026-05-04`
+>
+> Proximo uso: completar diez preguntas reales de `Ind Extractivas`.
+
 ## Objetivo
 Medir calidad real del flujo chat-first en preguntas teoricas y debate de resueltos.
 

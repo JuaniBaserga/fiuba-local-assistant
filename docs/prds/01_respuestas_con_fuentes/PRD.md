@@ -3,7 +3,10 @@
 ## 0. Control del documento
 - Version: `4.0`
 - Fecha: `2026-05-04`
-- Estado: `Foco actual`
+- Ultima actualizacion: `2026-06-22`
+- Madurez: `Vigente`
+- Estado de iniciativa: `Activa`
+- Iniciativa: `I-01`
 - Owner: `Proyecto fiuba-local-assistant`
 
 ## 1. Resumen ejecutivo
@@ -35,7 +38,8 @@ El estudiante tiene PDFs, guias, resumenes y parciales dispersos por materia. Bu
 5. Productizar calendario o planificacion de estudio.
 6. Construir app mobile o multiusuario.
 
-Las ideas anteriores no se descartan; quedan registradas en `docs/PRD_FUTURE.md`.
+Las ideas anteriores no se descartan; quedan registradas en
+[`../06_backlog/README.md`](../06_backlog/README.md).
 
 ## 5. Usuario primario
 Estudiante FIUBA con material local organizado en:
@@ -151,7 +155,7 @@ Scoring por caso:
 4. Claridad
 5. Manejo de incertidumbre
 
-Referencia: `docs/EVAL_SET.md`.
+Referencia: [`../../reference/EVAL_SET.md`](../../reference/EVAL_SET.md).
 
 ## 12. Riesgos
 ### R-01 PDFs sin texto extraible
@@ -170,19 +174,14 @@ Mitigacion actual:
 - Archivo + chunk.
 
 Mejora futura:
-- Pagina/seccion. Ver `docs/PRD_FUTURE.md`.
+- Pagina/seccion. Ver [`../06_backlog/README.md`](../06_backlog/README.md).
 
-## 13. Roadmap inmediato
-### Sprint actual: calidad de respuesta
-1. Pulir prompt y contrato de salida.
-2. Mejorar visualizacion de fuentes.
-3. Preparar set de evaluacion con preguntas reales.
-4. Medir respuestas con Gemini/OpenAI/Ollama.
+## 13. Dependencias
 
-### Sprint siguiente: recuperacion y citas
-1. Mejorar rerank.
-2. Agregar citas por pagina cuando el extractor lo permita.
-3. Mejorar mensajes cuando no hay contexto suficiente.
+1. Material local con texto extraible.
+2. Indice SQLite disponible.
+3. Al menos un motor de respuesta configurado.
+4. Set de evaluacion real para decidir mejoras de recuperacion.
 
 ## 14. Definicion de terminado
 1. UI enfocada en preguntar y fuentes.
@@ -192,19 +191,7 @@ Mejora futura:
 5. Tests locales pasan.
 6. README explica flujo simple: descargar local, indexar, preguntar.
 
-## 15. Estado actual
-Implementado:
+## 15. Seguimiento
 
-1. CLI: `index`, `ask`, `answer`, `serve`, `stats`, `ocr-check`.
-2. UI local simplificada para `Preguntar`.
-3. Motores: Gemini, OpenAI, Ollama.
-4. Indexado incremental SQLite + FTS5.
-5. Materias detectadas desde filesystem.
-6. Fuentes por archivo/chunk con extractos.
-
-Pendiente inmediato:
-
-1. Evaluar calidad con set real.
-2. Mejorar citas a pagina/seccion.
-3. Revisar ranking de fuentes.
-4. Decidir si el modulo `study` queda como experimental, futuro o se remueve del producto principal.
+La realidad tecnica, prioridad y proximos pasos se mantienen en
+[`../../README.md`](../../README.md).

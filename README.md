@@ -11,7 +11,9 @@ El producto esta concentrado en una sola experiencia:
 3. Preguntar desde la UI.
 4. Revisar respuesta, fuentes y confianza.
 
-Las ideas fuera de foco inmediato, como OCR asistido, Google Drive, debate de ejercicios y calendario de estudio, estan documentadas en `docs/PRD_FUTURE.md`.
+Las ideas fuera de foco inmediato, como OCR asistido, Google Drive, debate de
+ejercicios y calendario de estudio, estan documentadas en
+`docs/prds/06_backlog/README.md`.
 
 ## Requisitos
 
@@ -149,15 +151,21 @@ No se versionan:
 
 ## Documentacion
 
-- `docs/PRD.md`: producto actual.
-- `docs/STATUS.md`: estado operativo.
-- `docs/PRD_FUTURE.md`: ideas futuras o pausadas.
-- `docs/EVAL_SET.md`: set de evaluacion.
+- `docs/README.md`: estado, estrategia, prioridades y cambios recientes.
+- `docs/prds/README.md`: registro y ciclo de vida de los PRD.
+- `docs/prds/01_respuestas_con_fuentes/PRD.md`: producto actual.
+- `docs/prds/02_cerebro_semantico/PRD.md`: experimento de embeddings y mapa semantico.
+- `docs/prds/06_backlog/README.md`: oportunidades futuras.
+- `docs/reference/EVAL_SET.md`: set de evaluacion.
+
+Regla del proyecto: toda implementacion significativa debe actualizar
+`docs/README.md` dentro del mismo cambio.
 
 ## Estructura
 
 ```text
 fiuba-local-assistant/
+├── activities/        # Prototipos pedagogicos autocontenidos
 ├── src/fiuba_local/
 ├── tests/
 ├── docs/
@@ -167,3 +175,6 @@ fiuba-local-assistant/
 ├── .env.example
 └── pyproject.toml
 ```
+
+Las actividades independientes y su forma de ejecucion estan catalogadas en
+[`activities/README.md`](activities/README.md).

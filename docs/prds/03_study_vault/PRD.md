@@ -4,8 +4,16 @@
 
 - Version: `0.1`
 - Fecha: `2026-05-04`
-- Estado: `Borrador inicial`
+- Ultima actualizacion: `2026-06-22`
+- Madurez: `Historico`
+- Estado de iniciativa: `Absorbida por I-02 Cerebro y mapa semantico`
+- Iniciativa: `I-03`
 - Owner: `fiuba-local-assistant`
+
+> Nota 2026-06-22: esta iniciativa se conserva como documento historico. Su
+> alcance de memoria Markdown/Obsidian continua dentro de
+> [`../02_cerebro_semantico/PRD.md`](../02_cerebro_semantico/PRD.md); el estado
+> del portfolio vive en [`../../README.md`](../../README.md).
 
 ## 1. Resumen
 

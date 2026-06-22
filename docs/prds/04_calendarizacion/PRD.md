@@ -1,22 +1,23 @@
 # PRD v1.1 - Study Planner + Calendar Sync (FIUBA Local Assistant)
 
-> Nota 2026-05-04: este PRD queda como iniciativa futura/experimental. No forma
-> parte del foco actual del producto, que es mejorar respuestas con fuentes. Ver
-> `docs/PRD.md` y la entrada F-05/F-06 en `docs/PRD_FUTURE.md`.
+> Estado de portfolio: `Pausada` (`I-04`). No forma parte del foco actual. Ver
+> [`../../README.md`](../../README.md).
 
 ## 0. Control del documento
 - Version: `1.1`
 - Fecha: `2026-04-18`
-- Estado: `MVP funcional (Sprint 1-4 implementados, Sprint 5 pendiente)`
+- Ultima actualizacion: `2026-06-22`
+- Madurez: `Vigente si se retoma`
+- Estado de iniciativa: `Pausada`
+- Iniciativa: `I-04`
 - Owner: `fiuba-local-assistant`
-- Ultima actualizacion: `2026-04-18`
 
 ## 1. Resumen ejecutivo
 Este modulo agrega gestion de estudio al asistente local: toma fechas academicas (parciales/finales/entregas), calcula una carga de estudio sugerida por materia, genera bloques diarios/semanales y sincroniza esos bloques con Google Calendar.
 
 El valor principal es operativo: no solo responder dudas, sino convertir cronogramas y fechas reales en un plan accionable y medible.
 
-## 1.1 Estado de avance (2026-04-18)
+## 1.1 Evidencia al momento de la pausa (2026-04-18)
 Implementado:
 1. `study init`: crea `study_dates.json` y `study_state.json`.
 2. `study plan`: genera sesiones por prioridad y guarda estado.
