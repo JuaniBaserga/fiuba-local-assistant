@@ -2,7 +2,7 @@ const activities = {
   assistant: {
     src: "/",
     title: "Preguntar al asistente",
-    frameTitle: "FIUBA Assistant",
+    frameTitle: "Asistente FIUBA",
   },
   extractivas: {
     src: "ind-extractivas-teoricas/",

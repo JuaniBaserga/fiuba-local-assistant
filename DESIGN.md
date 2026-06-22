@@ -1,15 +1,15 @@
-# FIUBA Study UI - DESIGN.md
+# Interfaz de estudio FIUBA — guía de diseño
 
 > Estado: `Referencia vigente` · Ultima revision documental: `2026-06-22`
 
-Reference style:
-- Inspired by the Notion profile from `VoltAgent/awesome-design-md`.
-- Source reference: `https://getdesign.md/notion/design-md`.
+Esta guía es el contrato visual y de lenguaje para todas las pantallas, incluidas
+las actividades. Las variaciones por materia pueden usar un color identificatorio,
+pero no redefinir tipografía, espaciado, navegación ni componentes.
 
-## 1) Visual theme
-- Warm minimal workspace.
-- Academic, calm, and precise.
-- High readability over decorative complexity.
+## 1) Tema visual
+- Espacio de trabajo cálido y minimalista.
+- Académico, calmo y preciso.
+- La legibilidad prevalece sobre la decoración.
 
 ## 2) Color palette
 - `bg`: `#f6f5f4`
@@ -69,13 +69,29 @@ Scale:
   4. Fuentes
 - Always show sources block below response.
 
-## 8) Do and do-not
-Do:
+## 8) Lenguaje
+- Nombre del producto: `Asistente FIUBA`.
+- Secciones: `Asistente`, `Calendario`, `Actividades`, `Administración`.
+- La interfaz general se escribe en español rioplatense y usa voseo.
+- Los términos técnicos sin traducción clara se explican la primera vez.
+- Las siglas de formatos o tecnologías (`API`, `ICS`, `FTS`) se conservan.
+- Todos los textos visibles respetan tildes y puntuación.
+
+## 9) Navegación y actividades
+- La navegación principal conserva el mismo orden y tratamiento visual.
+- Las actividades usan los tokens globales y los mismos botones, campos y tarjetas.
+- El color de una materia sólo puede aparecer como acento secundario en iconos,
+  etiquetas o progreso; las acciones principales permanecen azules.
+- Radio de controles: `12px`. Radio de tarjetas: `12px` o `18px`.
+- No se usan barras laterales oscuras como identidad paralela del producto.
+
+## 10) Qué hacer y qué evitar
+Hacer:
 - Favor clear hierarchy and reading comfort.
 - Keep source traceability visible.
 - Keep interaction latency visible via status pill.
 
-Do not:
+Evitar:
 - Overuse bright accents.
 - Hide source metadata.
 - Use dense dashboard visuals for study content.

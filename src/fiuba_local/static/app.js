@@ -1,3 +1,7 @@
+if (window.self !== window.top) {
+  document.body.classList.add("is-embedded");
+}
+
 const statusPill = document.getElementById("status-pill");
 const materiaSelect = document.getElementById("materia");
 const materiaCount = document.getElementById("materia-count");

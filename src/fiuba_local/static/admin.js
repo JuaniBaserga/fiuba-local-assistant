@@ -41,8 +41,8 @@ function formatSemanticIndex(stats) {
     `Actualizados: ${stats.updated ?? 0}`,
     `Sin cambios: ${stats.skipped_unchanged ?? 0}`,
     `Fragmentos: ${stats.fragments ?? 0}`,
-    `Embeddings creados: ${stats.embeddings_created ?? 0}`,
-    `Embeddings reutilizados: ${stats.embeddings_reused ?? 0}`,
+    `Vectores creados: ${stats.embeddings_created ?? 0}`,
+    `Vectores reutilizados: ${stats.embeddings_reused ?? 0}`,
     `Advertencias: ${stats.warnings ?? 0}`,
   ].join("\n");
 }
@@ -79,6 +79,12 @@ async function runSemanticIndex() {
 
 function renderSemanticResults(results) {
   semanticResults.innerHTML = "";
+  if (!results.length) {
+    const li = document.createElement("li");
+    li.textContent = "Sin resultados semanticos para esa consulta. Proba indexar mas archivos o ajustar la materia.";
+    semanticResults.appendChild(li);
+    return;
+  }
   for (const item of results) {
     const li = document.createElement("li");
     const page = item.page_start === item.page_end ? item.page_start : `${item.page_start}-${item.page_end}`;
@@ -118,9 +124,10 @@ async function runSemanticSearch() {
       body: JSON.stringify(payload),
     });
     const data = await resp.json();
-    if (!resp.ok) throw new Error(data.error || "fallo busqueda semantica");
-    renderSemanticResults(data.results || []);
-    setAdminStatus("Listo");
+    if (!resp.ok) throw new Error(data.error || "falló la búsqueda semántica");
+    const results = data.results || [];
+    renderSemanticResults(results);
+    setAdminStatus(`${results.length} resultado${results.length === 1 ? "" : "s"}`);
   } catch (err) {
     const li = document.createElement("li");
     li.textContent = `Error: ${err.message}`;

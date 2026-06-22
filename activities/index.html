@@ -3,22 +3,27 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>FIUBA Assistant · Estudiar</title>
+    <title>Actividades · Asistente FIUBA</title>
     <link rel="stylesheet" href="hub.css" />
   </head>
   <body>
     <main class="hub-shell">
       <aside class="hub-sidebar">
+        <nav class="top-nav hub-top-nav" aria-label="Navegación principal">
+          <a href="/">Asistente</a>
+          <a href="/calendar">Calendario</a>
+          <a href="/apps/" aria-current="page">Actividades</a>
+        </nav>
         <header class="hub-brand">
           <span class="brand-mark" aria-hidden="true">F</span>
           <div>
-            <p>FIUBA Assistant</p>
-            <h1>Estudiar</h1>
+            <p>Asistente FIUBA</p>
+            <h1>Actividades</h1>
           </div>
         </header>
 
-        <p class="sidebar-label">Elegí una experiencia</p>
-        <nav class="activity-list" aria-label="Experiencias disponibles">
+        <p class="sidebar-label">Elegí una actividad</p>
+        <nav class="activity-list" aria-label="Actividades disponibles">
           <button
             class="activity-card active"
             type="button"
@@ -42,7 +47,7 @@
             <span class="activity-icon extractivas" aria-hidden="true">⛏</span>
             <span>
               <strong>Industrias Extractivas</strong>
-              <small>Test, fichas y práctica oral</small>
+              <small>Preguntas, fichas y práctica oral</small>
             </span>
           </button>
 
@@ -62,14 +67,14 @@
 
         <footer class="hub-note">
           <span class="status-dot" aria-hidden="true"></span>
-          <p>Cada experiencia conserva su estado de forma independiente.</p>
+          <p>Cada actividad conserva su progreso de forma independiente.</p>
         </footer>
       </aside>
 
       <section class="activity-stage">
         <header class="mobile-header">
           <div>
-            <p>FIUBA Assistant</p>
+            <p>Asistente FIUBA</p>
             <strong id="mobileTitle">Preguntar al asistente</strong>
           </div>
           <label>
@@ -85,7 +90,7 @@
         <iframe
           id="activityFrame"
           src="/"
-          title="FIUBA Assistant"
+          title="Asistente FIUBA"
         ></iframe>
       </section>
     </main>

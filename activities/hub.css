@@ -1,8 +1,16 @@
 :root {
   color-scheme: light;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #f5f3ee;
-  color: #17211c;
+  font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+  background: #f6f5f4;
+  color: #161514;
+  --bg: #f6f5f4;
+  --surface: #ffffff;
+  --surface-soft: #faf9f7;
+  --text: #161514;
+  --muted: #5d5853;
+  --line: #dfdbd7;
+  --primary: #0075de;
+  --primary-active: #005bab;
 }
 
 * {
@@ -30,7 +38,7 @@ select {
   grid-template-columns: 280px minmax(0, 1fr);
   width: 100vw;
   height: 100vh;
-  background: #f5f3ee;
+  background: var(--bg);
 }
 
 .hub-sidebar {
@@ -38,13 +46,45 @@ select {
   z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 28px;
-  padding: 28px 22px 22px;
-  color: #f8f7f2;
-  background:
-    radial-gradient(circle at 20% 0%, rgb(75 116 90 / 32%), transparent 34%),
-    #16251d;
-  box-shadow: 12px 0 36px rgb(23 33 28 / 12%);
+  gap: 22px;
+  padding: 20px 18px 18px;
+  color: var(--text);
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  box-shadow: 8px 0 24px rgb(25 20 16 / 5%);
+}
+
+.hub-top-nav {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+
+.hub-top-nav a {
+  flex: 1 1 0;
+  padding: 7px 6px;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
+  transition: color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.hub-top-nav a:hover {
+  color: var(--text);
+  background: #fff;
+}
+
+.hub-top-nav a[aria-current="page"] {
+  color: var(--primary-active);
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(25 20 16 / 10%);
 }
 
 .hub-brand {
@@ -60,8 +100,8 @@ select {
   place-items: center;
   border: 1px solid rgb(255 255 255 / 18%);
   border-radius: 13px;
-  color: #173024;
-  background: #d9e8a7;
+  color: #fff;
+  background: var(--primary);
   font-size: 19px;
   font-weight: 900;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 65%);
@@ -75,7 +115,7 @@ select {
 
 .hub-brand p {
   margin-bottom: 2px;
-  color: #aebdb3;
+  color: var(--muted);
   font-size: 11px;
   font-weight: 750;
   letter-spacing: 0.12em;
@@ -88,8 +128,8 @@ select {
 }
 
 .sidebar-label {
-  margin: 2px 8px -18px;
-  color: #83978a;
+  margin: 2px 8px -12px;
+  color: var(--muted);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.14em;
@@ -98,7 +138,7 @@ select {
 
 .activity-list {
   display: grid;
-  gap: 9px;
+  gap: 6px;
 }
 
 .activity-card {
@@ -107,10 +147,10 @@ select {
   gap: 12px;
   align-items: center;
   width: 100%;
-  padding: 13px;
+  padding: 10px;
   border: 1px solid transparent;
-  border-radius: 15px;
-  color: #d7e0da;
+  border-radius: 12px;
+  color: var(--text);
   background: transparent;
   text-align: left;
   cursor: pointer;
@@ -118,16 +158,16 @@ select {
 }
 
 .activity-card:hover {
-  border-color: rgb(255 255 255 / 10%);
-  background: rgb(255 255 255 / 5%);
-  transform: translateX(2px);
+  border-color: var(--line);
+  background: var(--surface-soft);
+  transform: translateX(1px);
 }
 
 .activity-card.active {
-  border-color: rgb(218 233 172 / 20%);
-  color: #fff;
-  background: rgb(255 255 255 / 10%);
-  box-shadow: inset 3px 0 0 #d9e8a7;
+  border-color: #b9d7f4;
+  color: var(--text);
+  background: #eef6fd;
+  box-shadow: inset 3px 0 0 var(--primary), 0 2px 8px rgb(0 117 222 / 7%);
 }
 
 .activity-card strong,
@@ -136,12 +176,13 @@ select {
 }
 
 .activity-card strong {
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   font-size: 13px;
+  line-height: 1.25;
 }
 
 .activity-card small {
-  color: #93a59a;
+  color: var(--muted);
   font-size: 11px;
   line-height: 1.35;
 }
@@ -151,7 +192,7 @@ select {
   width: 40px;
   height: 40px;
   place-items: center;
-  border-radius: 12px;
+  border-radius: 10px;
   font-size: 18px;
 }
 
@@ -174,12 +215,12 @@ select {
   display: flex;
   gap: 9px;
   align-items: flex-start;
-  margin-top: auto;
+  margin-top: 8px;
   padding: 14px;
-  border: 1px solid rgb(255 255 255 / 8%);
+  border: 1px solid var(--line);
   border-radius: 13px;
-  color: #93a59a;
-  background: rgb(0 0 0 / 9%);
+  color: var(--muted);
+  background: var(--surface-soft);
   font-size: 11px;
   line-height: 1.45;
 }
@@ -190,14 +231,14 @@ select {
   height: 7px;
   margin-top: 4px;
   border-radius: 50%;
-  background: #b9d872;
-  box-shadow: 0 0 0 4px rgb(185 216 114 / 12%);
+  background: #2a9d99;
+  box-shadow: 0 0 0 4px rgb(42 157 153 / 12%);
 }
 
 .activity-stage {
   min-width: 0;
   min-height: 0;
-  background: #f5f3ee;
+  background: var(--bg);
 }
 
 .activity-stage iframe {
@@ -205,7 +246,7 @@ select {
   width: 100%;
   height: 100%;
   border: 0;
-  background: #f5f3ee;
+  background: var(--bg);
 }
 
 .mobile-header {
@@ -249,13 +290,14 @@ select {
     justify-content: space-between;
     gap: 16px;
     padding: 10px 14px;
-    color: #f8f7f2;
-    background: #16251d;
+    color: var(--text);
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
   }
 
   .mobile-header p {
     margin: 0 0 2px;
-    color: #93a59a;
+    color: var(--muted);
     font-size: 9px;
     font-weight: 800;
     letter-spacing: 0.12em;
@@ -269,10 +311,10 @@ select {
   .mobile-header select {
     max-width: 145px;
     padding: 9px 30px 9px 11px;
-    border: 1px solid rgb(255 255 255 / 14%);
+    border: 1px solid var(--line);
     border-radius: 10px;
-    color: #fff;
-    background: #26382e;
+    color: var(--text);
+    background: var(--surface-soft);
   }
 
   .activity-stage iframe {

@@ -3,17 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FIUBA Assistant Admin</title>
+    <title>Administración · Asistente FIUBA</title>
     <link rel="stylesheet" href="/assets/style.css" />
   </head>
   <body>
     <main class="admin-shell">
       <header class="admin-header">
         <div>
-          <h1>Admin</h1>
-          <p class="subtitle">Estado de indexacion, rutas activas y busqueda semantica experimental.</p>
+          <h1>Administración</h1>
+          <p class="subtitle">Estado de indexación, rutas activas y búsqueda semántica experimental.</p>
         </div>
-        <a class="nav-link" href="/">Chat</a>
+        <a class="nav-link" href="/">Asistente</a>
       </header>
 
       <section class="admin-grid">
@@ -23,7 +23,7 @@
             <button id="refresh-status-btn" type="button" class="secondary small">Actualizar</button>
           </div>
           <dl class="status-grid">
-            <dt>Root</dt>
+            <dt>Carpeta raíz</dt>
             <dd id="root-path">-</dd>
             <dt>FTS DB</dt>
             <dd id="db-path">-</dd>
@@ -34,26 +34,26 @@
           </dl>
           <div class="metric-grid">
             <div>
-              <span>FTS docs</span>
+              <span>Documentos FTS</span>
               <strong id="fts-docs">0</strong>
             </div>
             <div>
-              <span>FTS chunks</span>
+              <span>Fragmentos FTS</span>
               <strong id="fts-chunks">0</strong>
             </div>
             <div>
-              <span>Semantic docs</span>
+              <span>Documentos semánticos</span>
               <strong id="semantic-docs">0</strong>
             </div>
             <div>
-              <span>Embeddings</span>
+              <span>Vectores</span>
               <strong id="semantic-embeddings">0</strong>
             </div>
           </div>
         </article>
 
         <article class="admin-panel">
-          <h2>Indexar Semantico</h2>
+          <h2>Indexación semántica</h2>
           <div class="inline-grid">
             <div>
               <label for="semantic-materia">Materia</label>
@@ -73,11 +73,11 @@
 
       <section class="admin-panel">
         <div class="panel-head">
-          <h2>Busqueda Semantica</h2>
+          <h2>Búsqueda semántica</h2>
           <span id="admin-status-pill" class="status-pill">Listo</span>
         </div>
         <label for="semantic-query">Consulta</label>
-        <textarea id="semantic-query" rows="3">separacion por flotacion con burbujas</textarea>
+        <textarea id="semantic-query" rows="3">separación por flotación con burbujas</textarea>
         <div class="inline-grid admin-search-options">
           <div>
             <label for="semantic-filter">Filtro materia</label>

@@ -3,13 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FIUBA Assistant</title>
+    <title>Asistente FIUBA</title>
     <link rel="stylesheet" href="/assets/style.css" />
   </head>
   <body>
+    <header class="app-topbar">
+      <div>
+        <p class="eyebrow">Asistente</p>
+        <h1>Asistente FIUBA</h1>
+      </div>
+      <nav class="top-nav">
+        <a href="/" aria-current="page">Asistente</a>
+        <a href="/calendar">Calendario</a>
+        <a href="/apps/">Actividades</a>
+      </nav>
+    </header>
     <main class="app-shell">
       <aside class="control-panel">
-        <h1>FIUBA Assistant</h1>
         <p class="subtitle">Respuestas con tus apuntes locales y fuentes a la vista.</p>
 
         <label for="materia">Materia</label>
@@ -43,7 +53,7 @@
               <input id="topk" type="number" min="1" max="15" value="6" />
             </div>
             <div>
-              <label for="timeout">Timeout (s)</label>
+              <label for="timeout">Tiempo máximo (s)</label>
               <input id="timeout" type="number" min="10" max="1200" value="300" />
             </div>
           </div>
@@ -60,7 +70,7 @@
         <textarea
           id="question"
           rows="7"
-          placeholder="Ejemplo: Explicame molienda y dame una guia de pasos para resolver ejercicios."
+          placeholder="Ejemplo: Explicame molienda y dame una guía de pasos para resolver ejercicios."
         ></textarea>
 
         <div class="actions">
