@@ -46,6 +46,7 @@ No se prioriza personalización compleja antes de medir la calidad de recuperaci
 | Preguntas con fuentes | Funciona | Gemini, OpenAI u Ollama |
 | Citas | Parcial | Archivo/chunk; página pendiente en el flujo estable |
 | Índice semántico | Experimental | Embeddings locales, páginas y base separada |
+| Admin de indexación | Experimental | `/admin` muestra estado FTS/semántico y permite buscar vecinos |
 | Diagnóstico OCR | Técnico | Disponible por CLI |
 | Actividades de práctica | Funciona | Hub único con Extractivas y Automatización |
 | Planner/calendario | Pausado | Implementado; validación real pendiente |
@@ -102,6 +103,7 @@ python3 -m http.server 8000 --directory activities
 Abrir:
 
 - App principal: `http://127.0.0.1:8787`
+- Admin: `http://127.0.0.1:8787/admin`
 - Actividades: `http://127.0.0.1:8000`
 
 Tests:
@@ -117,6 +119,8 @@ Tests:
 - Se incorporó un índice semántico experimental con embeddings locales,
   trazabilidad por página y comandos `semantic index`, `semantic search` y
   `semantic stats`.
+- Se agregó `/admin` para revisar rutas de índices, métricas FTS/semánticas,
+  reindexar el piloto semántico y probar vecinos con fuente, página y extracto.
 - Se migraron las prácticas de Extractivas y Automatización al repositorio.
 - Se creó una página única para cambiar entre ambas actividades.
 - El asistente principal se incorporó como pantalla inicial de esa página, para

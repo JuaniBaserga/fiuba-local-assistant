@@ -1,8 +1,8 @@
-# PRD v0.1 - Cerebro y mapa semantico
+# PRD v0.2 - Cerebro y mapa semantico
 
 ## 0. Control del documento
 
-- Version: `0.1`
+- Version: `0.2`
 - Fecha: `2026-06-22`
 - Ultima actualizacion: `2026-06-22`
 - Madurez: `Vigente para discovery`
@@ -18,6 +18,8 @@ Esta iniciativa crea una capa de conocimiento local que combina materiales acade
 El primer producto no sera un chat nuevo. Sera un mapa semantico interactivo de `Ind Extractivas`: fragmentos conceptualmente cercanos apareceran juntos y cada punto permitira volver al documento y pagina de origen.
 
 El mapa es un experimento visible y divertido, pero tambien construye capacidades reutilizables: embeddings incrementales, citas por pagina, colecciones, recuperacion hibrida y soporte futuro para un vault de Obsidian.
+
+Actualizacion `2026-06-22`: ya existe un primer corte funcional del indice semantico experimental. Permite indexar un corpus piloto, buscar vecinos semanticos por CLI y revisar estado/busquedas desde `/admin`. El mapa 2D interactivo sigue pendiente.
 
 ## 2. Problema
 
@@ -78,6 +80,19 @@ El piloto usara entre 6 y 10 PDFs representativos:
 
 Se evitaran inicialmente compilaciones gigantes y duplicados para que el mapa no quede dominado por una sola fuente.
 
+### Estado del corpus piloto
+
+Al `2026-06-22` se indexo el piloto inicial de `Ind Extractivas`:
+
+- 10 documentos;
+- 616 fragmentos;
+- 616 embeddings;
+- base experimental: `/Users/juanibaserga/dev/.fiuba_local/semantic.db`;
+- modelo: `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`.
+
+La base estable FTS usada por la app principal permanece separada:
+`/Users/juanibaserga/dev/.fiuba_local/index.db`.
+
 ## 7. Experiencia del usuario
 
 ### 7.1 Explorar
@@ -92,6 +107,8 @@ El usuario abre el mapa y ve cada fragmento como un punto:
 ### 7.2 Buscar
 
 El usuario escribe una idea, por ejemplo `separacion por flotacion`. El sistema genera el embedding de la consulta, encuentra vecinos y resalta la region correspondiente.
+
+Estado actual: la busqueda semantica ya funciona por CLI y por `/admin`. La UI devuelve ranking, puntaje, fuente, pagina y extracto. El resaltado sobre mapa queda pendiente de la visualizacion 2D.
 
 ### 7.3 Jugar con vecinos
 
@@ -121,6 +138,22 @@ chunks + metadatos + hash
      vecinos + proyeccion 2D
             |
        mapa interactivo
+```
+
+Implementacion actual:
+
+```text
+CLI /admin
+   |
+   v
+src/fiuba_local/semantic.py
+   |
+   v
+SQLite experimental semantic.db
+   |
+   +-- documents
+   +-- fragments
+   +-- embeddings
 ```
 
 El futuro vault `Cerebro/` entrara por el mismo pipeline como otra coleccion:
@@ -175,29 +208,73 @@ type: source | concept | project | decision | experiment
 
 El piloto debe usar una base separada del indice de produccion. Borrar o regenerar el experimento no debe afectar preguntas actuales.
 
+Estado: implementado. El indice semantico usa una SQLite separada (`semantic.db`) y no modifica `index.db`.
+
 ### RF-02 Extraccion por pagina
 
 Cada fragmento de PDF debe conservar pagina inicial y final. Los errores de extraccion deben registrarse sin detener el corpus completo.
+
+Estado: implementado para PDFs con `pypdf`. TXT y Markdown se soportan como pagina logica unica para preparar integracion futura con Obsidian.
 
 ### RF-03 Embeddings incrementales
 
 El sistema debe reutilizar embeddings cuando no cambien el texto ni el modelo. Un cambio de archivo solo debe recalcular sus fragmentos afectados.
 
+Estado: implementado por hash de archivo y hash de texto. Validacion: reindexar los 10 archivos piloto devolvio `10` sin cambios y `0` embeddings recalculados.
+
 ### RF-04 Privacidad local
 
 El modelo de embeddings del piloto debe ejecutarse localmente. Cualquier opcion cloud futura requerira eleccion explicita.
+
+Estado: implementado. La inferencia usa `sentence-transformers` local. La descarga inicial del modelo requiere accion explicita; luego las consultas usan el modelo cacheado.
 
 ### RF-05 Visualizacion
 
 El mapa debe soportar zoom, desplazamiento, tooltip, filtros por tipo y seleccion de un punto.
 
+Estado: pendiente. Existe `/admin` como panel operativo, pero no mapa 2D.
+
 ### RF-06 Busqueda semantica
 
 Una consulta debe mostrar al menos diez vecinos con puntaje, fuente, pagina y extracto.
 
+Estado: implementado por CLI y `/admin`.
+
 ### RF-07 Reproducibilidad
 
 Debe existir un comando documentado para reconstruir embeddings y proyeccion desde cero.
+
+Estado: parcial. Existe comando reproducible para embeddings; falta proyeccion 2D.
+
+```bash
+PYTHONPATH=src .venv/bin/python -m fiuba_local.cli \
+  --root /Users/juanibaserga/dev/Facultad \
+  semantic index \
+  --materia "Ind Extractivas" \
+  --semantic-db /Users/juanibaserga/dev/.fiuba_local/semantic.db \
+  --limit-files 10
+```
+
+Busqueda:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m fiuba_local.cli \
+  semantic search "separacion por flotacion con burbujas" \
+  --semantic-db /Users/juanibaserga/dev/.fiuba_local/semantic.db \
+  --top-k 10
+```
+
+Admin:
+
+```bash
+PYTHONPATH=src .venv/bin/python -m fiuba_local.cli \
+  --root /Users/juanibaserga/dev/Facultad \
+  --db /Users/juanibaserga/dev/.fiuba_local/index.db \
+  serve --host 127.0.0.1 --port 8788 \
+  --semantic-db /Users/juanibaserga/dev/.fiuba_local/semantic.db
+```
+
+Abrir: `http://127.0.0.1:8788/admin`.
 
 ## 11. Evaluacion
 
@@ -207,6 +284,13 @@ Debe existir un comando documentado para reconstruir embeddings y proyeccion des
 2. Reindexar sin cambios no recalcula embeddings.
 3. El mapa carga de forma util en una maquina local.
 4. Ningun contenido sale del equipo durante el piloto.
+
+Estado de evidencia `2026-06-22`:
+
+1. Cumplido para resultados semanticos: fuente, pagina y extracto visibles.
+2. Cumplido: reindexado del piloto no recalculo embeddings.
+3. Pendiente: no hay mapa 2D todavia.
+4. Cumplido para inferencia: embeddings locales. La descarga inicial del modelo fue explicita.
 
 ### Metricas de producto
 
@@ -223,6 +307,8 @@ Debe existir un comando documentado para reconstruir embeddings y proyeccion des
 3. Etiquetar tipo de documento.
 4. Detectar duplicados evidentes.
 
+Estado: completada para el primer corte operativo, salvo deduplicacion avanzada.
+
 ### Fase B - Espacio semantico
 
 1. Elegir un modelo local multilingue.
@@ -230,12 +316,16 @@ Debe existir un comando documentado para reconstruir embeddings y proyeccion des
 3. Calcular vecinos.
 4. Proyectar a 2D.
 
+Estado: parcialmente completada. Modelo local, embeddings incrementales y vecinos funcionan. Falta proyeccion 2D.
+
 ### Fase C - Juguete navegable
 
 1. Construir mapa interactivo.
 2. Agregar busqueda y filtros.
 3. Agregar modo de vecinos.
 4. Registrar hallazgos y fallas.
+
+Estado: iniciada con `/admin`. Busqueda y filtros basicos funcionan; mapa y modo vecinos siguen pendientes.
 
 ### Fase D - Decision
 
@@ -275,5 +365,25 @@ Mitigacion: criterio de cierre corto y decision explicita al terminar Fase C.
 1. Que modelo local ofrece el mejor equilibrio entre español tecnico, tamaño y velocidad.
 2. Si el punto debe representar pagina, chunk o documento segun el nivel de zoom.
 3. Que tecnica de proyeccion produce un mapa estable y comprensible.
-4. Si la primera UI vive dentro de la app actual o como artefacto experimental separado.
+4. Si `/admin` alcanza como interfaz de discovery o si el mapa debe vivir como vista separada.
 5. Como abrir PDFs en pagina exacta de forma portable.
+
+## 16. Hallazgos iniciales
+
+Consulta: `separacion por flotacion con burbujas`.
+
+Resultados plausibles:
+
+1. `04. 07_Apunte Separaciones-1.pdf`, pagina 23, definicion de flotacion.
+2. `04. 07_Apunte Separaciones-1.pdf`, pagina 25, burbujas y factores de flotacion.
+3. `04. Clase_Flotacion.pdf`, pagina 7, colectores que unen burbujas y particulas.
+
+Consulta: `trituracion molienda tamaño de particula`.
+
+Resultados plausibles:
+
+1. `02. 06_Apunte Molienda.pdf`, pagina 20.
+2. `01. 05_Apunte Trituracion.pdf`, pagina 4.
+3. `04. 07_Apunte Separaciones-1.pdf`, pagina 16.
+
+Decision provisional: continuar el discovery hacia comparacion FTS vs semantica y mapa 2D. No integrar todavia en el flujo principal de respuestas.
