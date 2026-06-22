@@ -31,6 +31,7 @@ from .search import stats as fts_stats
 
 
 STATIC_DIR = Path(__file__).parent / "static"
+ACTIVITIES_DIR = Path(__file__).resolve().parents[2] / "activities"
 
 
 @dataclass(frozen=True)
@@ -138,6 +139,41 @@ class StudyHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def _static_file(self, path: Path) -> None:
+        suffix = path.suffix.lower()
+        content_type = {
+            ".css": "text/css; charset=utf-8",
+            ".html": "text/html; charset=utf-8",
+            ".js": "application/javascript; charset=utf-8",
+            ".json": "application/json; charset=utf-8",
+            ".svg": "image/svg+xml",
+            ".png": "image/png",
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+        }.get(suffix, "application/octet-stream")
+        self._text_file(path, content_type)
+
+    def _activity_file(self, request_path: str) -> None:
+        if request_path in {"/apps", "/apps/", "/activities", "/activities/"}:
+            rel = "index.html"
+        else:
+            prefix = "/apps/" if request_path.startswith("/apps/") else "/activities/"
+            rel = request_path[len(prefix) :]
+            if not rel or rel.endswith("/"):
+                rel = f"{rel}index.html"
+
+        base = ACTIVITIES_DIR.resolve()
+        target = (base / rel).resolve()
+        if base != target and base not in target.parents:
+            self.send_error(HTTPStatus.FORBIDDEN, "invalid activity path")
+            return
+        self._static_file(target)
+
+    def _redirect(self, location: str) -> None:
+        self.send_response(HTTPStatus.MOVED_PERMANENTLY)
+        self.send_header("Location", location)
+        self.end_headers()
+
     def log_message(self, format: str, *args) -> None:
         # Keep terminal output concise while serving requests.
         return
@@ -149,8 +185,17 @@ class StudyHandler(BaseHTTPRequestHandler):
         if path == "/":
             self._text_file(STATIC_DIR / "index.html", "text/html; charset=utf-8")
             return
+        if path == "/apps":
+            self._redirect("/apps/")
+            return
+        if path == "/activities":
+            self._redirect("/activities/")
+            return
         if path == "/admin":
             self._text_file(STATIC_DIR / "admin.html", "text/html; charset=utf-8")
+            return
+        if path.startswith("/apps") or path.startswith("/activities"):
+            self._activity_file(path)
             return
         if path == "/assets/style.css":
             self._text_file(STATIC_DIR / "style.css", "text/css; charset=utf-8")

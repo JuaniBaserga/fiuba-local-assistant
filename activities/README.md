@@ -25,7 +25,7 @@ Luego abrir:
 
 El hub permite cambiar entre el asistente principal y ambas actividades sin
 salir de la pagina. Para usar `Preguntar al asistente`, la app principal debe
-estar levantada en `http://127.0.0.1:8787`.
+estar levantada en la misma URL base que el hub.
 
 ## Criterio de integracion
 

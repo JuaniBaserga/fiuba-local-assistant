@@ -1,6 +1,6 @@
 const activities = {
   assistant: {
-    src: "http://127.0.0.1:8787/",
+    src: "/",
     title: "Preguntar al asistente",
     frameTitle: "FIUBA Assistant",
   },
@@ -23,9 +23,10 @@ const mobileTitle = document.querySelector("#mobileTitle");
 
 function showActivity(activityId, updateHash = true) {
   const activity = activities[activityId] || activities.assistant;
+  const targetUrl = new URL(activity.src, window.location.href).toString();
 
-  if (!frame.src.endsWith(activity.src)) {
-    frame.src = activity.src;
+  if (frame.src !== targetUrl) {
+    frame.src = targetUrl;
   }
   frame.title = activity.frameTitle;
   mobileTitle.textContent = activity.title;
